@@ -12,12 +12,15 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -39,6 +42,10 @@ import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.navigation.MediaRootRoute
 import dev.anilbeesetti.nextplayer.navigation.mediaNavGraph
 import dev.anilbeesetti.nextplayer.navigation.settingsNavGraph
+import dev.anilbeesetti.nextplayer.ui.BottomNavBar
+import dev.anilbeesetti.nextplayer.ui.BottomNavTab
+import dev.anilbeesetti.nextplayer.ui.MusicScreen
+import dev.anilbeesetti.nextplayer.ui.TelegramScreen
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 
@@ -98,71 +105,94 @@ class MainActivity : ComponentActivity() {
                 highContrastDarkTheme = shouldUseHighContrastDarkTheme(uiState = uiState),
                 dynamicColor = shouldUseDynamicTheming(uiState = uiState),
             ) {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.surface,
-                ) {
-                    val storagePermissionState = rememberPermissionState(permission = storagePermission)
+                val storagePermissionState = rememberPermissionState(permission = storagePermission)
 
-                    LifecycleEventEffect(event = Lifecycle.Event.ON_START) {
-                        storagePermissionState.launchPermissionRequest()
+                LifecycleEventEffect(event = Lifecycle.Event.ON_START) {
+                    storagePermissionState.launchPermissionRequest()
+                }
+
+                LaunchedEffect(key1 = storagePermissionState.status.isGranted) {
+                    if (storagePermissionState.status.isGranted) {
+                        synchronizer.startSync()
                     }
+                }
 
-                    LaunchedEffect(key1 = storagePermissionState.status.isGranted) {
-                        if (storagePermissionState.status.isGranted) {
-                            synchronizer.startSync()
-                        }
-                    }
+                var currentTab by remember { mutableStateOf(BottomNavTab.VIDEOS) }
 
-                    val mainNavController = rememberNavController()
-
-                    NavHost(
-                        navController = mainNavController,
-                        startDestination = MediaRootRoute,
-                        enterTransition = {
-                            slideIntoContainer(
-                                towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                                animationSpec = tween(
-                                    durationMillis = 200,
-                                    easing = LinearEasing,
-                                ),
-                            )
-                        },
-                        exitTransition = {
-                            slideOutOfContainer(
-                                towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                                animationSpec = tween(
-                                    durationMillis = 200,
-                                    easing = LinearEasing,
-                                ),
-                                targetOffset = { fullOffset -> (fullOffset * 0.3f).toInt() },
-                            )
-                        },
-                        popEnterTransition = {
-                            slideIntoContainer(
-                                towards = AnimatedContentTransitionScope.SlideDirection.End,
-                                animationSpec = tween(
-                                    durationMillis = 200,
-                                    easing = LinearEasing,
-                                ),
-                                initialOffset = { fullOffset -> (fullOffset * 0.3f).toInt() },
-                            )
-                        },
-                        popExitTransition = {
-                            slideOutOfContainer(
-                                towards = AnimatedContentTransitionScope.SlideDirection.End,
-                                animationSpec = tween(
-                                    durationMillis = 200,
-                                    easing = LinearEasing,
-                                ),
-                            )
-                        },
-                    ) {
-                        mediaNavGraph(
-                            context = this@MainActivity,
-                            navController = mainNavController,
+                Scaffold(
+                    bottomBar = {
+                        BottomNavBar(
+                            currentTab = currentTab,
+                            onTabSelected = { currentTab = it },
                         )
-                        settingsNavGraph(navController = mainNavController)
+                    },
+                ) { paddingValues ->
+                    when (currentTab) {
+                        BottomNavTab.VIDEOS -> {
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(paddingValues),
+                                color = MaterialTheme.colorScheme.surface,
+                            ) {
+                                val mainNavController = rememberNavController()
+
+                                NavHost(
+                                    navController = mainNavController,
+                                    startDestination = MediaRootRoute,
+                                    enterTransition = {
+                                        slideIntoContainer(
+                                            towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                                            animationSpec = tween(
+                                                durationMillis = 200,
+                                                easing = LinearEasing,
+                                            ),
+                                        )
+                                    },
+                                    exitTransition = {
+                                        slideOutOfContainer(
+                                            towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                                            animationSpec = tween(
+                                                durationMillis = 200,
+                                                easing = LinearEasing,
+                                            ),
+                                            targetOffset = { fullOffset -> (fullOffset * 0.3f).toInt() },
+                                        )
+                                    },
+                                    popEnterTransition = {
+                                        slideIntoContainer(
+                                            towards = AnimatedContentTransitionScope.SlideDirection.End,
+                                            animationSpec = tween(
+                                                durationMillis = 200,
+                                                easing = LinearEasing,
+                                            ),
+                                            initialOffset = { fullOffset -> (fullOffset * 0.3f).toInt() },
+                                        )
+                                    },
+                                    popExitTransition = {
+                                        slideOutOfContainer(
+                                            towards = AnimatedContentTransitionScope.SlideDirection.End,
+                                            animationSpec = tween(
+                                                durationMillis = 200,
+                                                easing = LinearEasing,
+                                            ),
+                                        )
+                                    },
+                                ) {
+                                    mediaNavGraph(
+                                        context = this@MainActivity,
+                                        navController = mainNavController,
+                                    )
+                                    settingsNavGraph(navController = mainNavController)
+                                }
+                            }
+                        }
+                        BottomNavTab.MUSIC -> {
+                            MusicScreen(modifier = Modifier.padding(paddingValues))
+                        }
+                        BottomNavTab.TELEGRAM -> {
+                            TelegramScreen(modifier = Modifier.padding(paddingValues))
+                        }
                     }
                 }
             }
@@ -170,10 +200,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-/**
- * Returns `true` if dark theme should be used, as a function of the [uiState] and the
- * current system context.
- */
 @Composable
 fun shouldUseDarkTheme(
     uiState: MainActivityUiState,
@@ -194,9 +220,6 @@ fun shouldUseHighContrastDarkTheme(
     is MainActivityUiState.Success -> uiState.preferences.useHighContrastDarkTheme
 }
 
-/**
- * Returns `true` if the dynamic color is disabled, as a function of the [uiState].
- */
 @Composable
 fun shouldUseDynamicTheming(
     uiState: MainActivityUiState,

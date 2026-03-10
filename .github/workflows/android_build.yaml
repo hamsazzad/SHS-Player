@@ -6,7 +6,7 @@ on:
   pull_request:
 
 concurrency:
-  group: build-${{ github.ref }}
+  group: android-build-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -60,4 +60,3 @@ jobs:
           name: build-reports
           path: app/build/reports
           if-no-files-found: warn
-

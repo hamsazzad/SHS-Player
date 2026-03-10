@@ -375,9 +375,8 @@ fun MediaPlayerScreen(
                                         controlsVisibilityState.hideControls()
                                         overlayView = OverlayView.VIDEO_CONTENT_SCALE
                                     },
-} else {
-                                            pictureInPictureState.enterPictureInPictureMode()
-                                        }
+                                    onPictureInPictureClick = {
+                                        pictureInPictureState.enterPictureInPictureMode()
                                     },
                                 )
                             }
@@ -592,3 +591,4 @@ fun PlayerControlsView(
         middleView()
     }
 }
+

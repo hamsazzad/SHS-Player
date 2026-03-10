@@ -59,6 +59,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -145,6 +146,7 @@ internal fun MediaPickerScreen(
         onResult = { it?.let { onPlayVideo(it) } },
     )
 
+    var showFavoritesOnly by rememberSaveable { mutableStateOf(false) }
     var isFabExpanded by rememberSaveable { mutableStateOf(false) }
     var showQuickSettingsDialog by rememberSaveable { mutableStateOf(false) }
     var showUrlDialog by rememberSaveable { mutableStateOf(false) }
@@ -219,6 +221,13 @@ internal fun MediaPickerScreen(
                             )
                         }
                     } else {
+                        IconButton(onClick = { showFavoritesOnly = !showFavoritesOnly }) {
+                            Icon(
+                                painter = androidx.compose.ui.res.painterResource(R.drawable.ic_favorite),
+                                contentDescription = if (showFavoritesOnly) "Show All Videos" else "Show Favourite Videos",
+                                tint = if (showFavoritesOnly) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                         IconButton(onClick = { showQuickSettingsDialog = true }) {
                             Icon(
                                 imageVector = NextIcons.DashBoard,
@@ -371,14 +380,26 @@ internal fun MediaPickerScreen(
                         permission = permissionState.permission,
                         launchPermissionRequest = { permissionState.launchPermissionRequest() },
                     ) {
+
                         val rootFolder = uiState.mediaDataState.value
                         if (rootFolder == null || rootFolder.folderList.isEmpty() && rootFolder.mediaList.isEmpty()) {
                             NoVideosFound(contentPadding = updatedScaffoldPadding)
                             return@PermissionMissingView
                         }
 
+                        val filteredRootFolder = if (showFavoritesOnly) {
+                            val favVideos = rootFolder.mediaList.filter { it.uriString in uiState.favoriteUris }
+                            if (favVideos.isEmpty()) {
+                                NoVideosFound(contentPadding = updatedScaffoldPadding)
+                                return@PermissionMissingView
+                            }
+                            rootFolder.copy(folderList = emptyList(), mediaList = favVideos)
+                        } else {
+                            rootFolder
+                        }
+
                         MediaView(
-                            rootFolder = rootFolder,
+                            rootFolder = filteredRootFolder,
                             preferences = uiState.preferences,
                             onFolderClick = onFolderClick,
                             onVideoClick = { onPlayVideo(it) },

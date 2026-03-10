@@ -36,6 +36,8 @@ fun PlayerMenuView(
     onShareClick: () -> Unit,
     onFavoriteClick: () -> Unit,
     onPlaylistClick: () -> Unit,
+    onVideoToAudioClick: () -> Unit = {},
+    onReversePlayClick: () -> Unit = {},
 ) {
     Column(
         modifier = modifier
@@ -80,6 +82,16 @@ fun PlayerMenuView(
             icon = coreUiR.drawable.ic_trim,
             title = stringResource(coreUiR.string.trim_video),
             onClick = onTrimClick,
+        )
+        MenuItem(
+            icon = coreUiR.drawable.ic_headset,
+            title = "Convert to Audio",
+            onClick = onVideoToAudioClick,
+        )
+        MenuItem(
+            icon = coreUiR.drawable.ic_fast,
+            title = "Reverse Play",
+            onClick = onReversePlayClick,
         )
         MenuItem(
             icon = coreUiR.drawable.ic_share,

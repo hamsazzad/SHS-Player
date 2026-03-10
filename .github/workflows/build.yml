@@ -1,14 +1,22 @@
-name: Build APK
+name: Build & Release APKs
 
 on:
   push:
     branches:
       - '**'
   workflow_dispatch:
+    inputs:
+      update_release:
+        description: 'Update v0.15.4 release with new APKs'
+        required: false
+        default: 'true'
+        type: boolean
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -27,12 +35,43 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build Release APK
-        run: ./gradlew assembleRelease --no-daemon --stacktrace
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
 
-      - name: Upload Release APK
+      - name: Build All Architecture APKs
+        run: ./gradlew assembleRelease --no-daemon -PdisablePreDex
+
+      - name: Rename APKs
+        run: |
+          BUILD_DIR="app/build/outputs/apk/release"
+          mkdir -p $BUILD_DIR/renamed
+          for f in $BUILD_DIR/*.apk; do
+            name=$(basename "$f")
+            case "$name" in
+              *arm64-v8a*)  mv "$f" "$BUILD_DIR/renamed/SHS-Player-arm64-v8a.apk" ;;
+              *armeabi-v7a*) mv "$f" "$BUILD_DIR/renamed/SHS-Player-armeabi-v7a.apk" ;;
+              *x86_64*)     mv "$f" "$BUILD_DIR/renamed/SHS-Player-x86_64.apk" ;;
+              *x86*)        mv "$f" "$BUILD_DIR/renamed/SHS-Player-x86.apk" ;;
+              *universal*)  mv "$f" "$BUILD_DIR/renamed/SHS-Player-universal.apk" ;;
+              *)            mv "$f" "$BUILD_DIR/renamed/$name" ;;
+            esac
+          done
+          ls -la $BUILD_DIR/renamed/
+
+      - name: Upload APKs as Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: SHS-Player-Release-APK
-          path: app/build/outputs/apk/release/*.apk
+          name: SHS-Player-APKs
+          path: app/build/outputs/apk/release/renamed/*.apk
           if-no-files-found: warn
+          retention-days: 30
+
+      - name: Update GitHub Release v0.15.4
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.update_release == 'true' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v0.15.4
+          files: app/build/outputs/apk/release/renamed/*.apk
+          fail_on_unmatched_files: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

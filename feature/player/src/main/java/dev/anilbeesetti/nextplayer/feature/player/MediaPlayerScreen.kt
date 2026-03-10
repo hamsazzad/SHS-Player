@@ -106,7 +106,7 @@ fun MediaPlayerScreen(
     onPlayInBackgroundClick: () -> Unit,
     onScreenshotClick: () -> Unit = {},
     onShareClick: () -> Unit = {},
-    onTrimClick: () -> Unit = {},
+},
 ) {
     val volumeState = rememberVolumeState(
         player = player,
@@ -373,11 +373,7 @@ fun MediaPlayerScreen(
                                         controlsVisibilityState.hideControls()
                                         overlayView = OverlayView.VIDEO_CONTENT_SCALE
                                     },
-                                    onPictureInPictureClick = {
-                                        if (!pictureInPictureState.hasPipPermission) {
-                                            Toast.makeText(context, coreUiR.string.enable_pip_from_settings, Toast.LENGTH_SHORT).show()
-                                            pictureInPictureState.openPictureInPictureSettings()
-                                        } else {
+} else {
                                             pictureInPictureState.enterPictureInPictureMode()
                                         }
                                     },
@@ -451,6 +447,8 @@ fun MediaPlayerScreen(
                 onBookmarkClick = { overlayView = OverlayView.BOOKMARKS },
                 onTrimClick = onTrimClick,
                 onShareClick = onShareClick,
+                onVideoToAudioClick = onVideoToAudioClick,
+                onReversePlayClick = onReversePlayClick,
                 onFavoriteClick = {
                     viewModel.toggleFavorite()
                     val msg = if (!isFavorite) coreUiR.string.added_to_favorites else coreUiR.string.removed_from_favorites
@@ -591,4 +589,20 @@ fun PlayerControlsView(
 
         middleView()
     }
-}
+},
+)/    onTrimClick: () -> Unit = {},
+    onVideoToAudioClick: () -> Unit = {},
+    onReversePlayClick: () -> Unit = {},
+)} else {
+                                            pictureInPictureState.enterPictureInPictureMode()
+                                        }
+                                    },/                                    onPictureInPictureClick = {
+                                        if (!pictureInPictureState.isPipSupported) {
+                                            Toast.makeText(context, "Popup play is not supported on this device", Toast.LENGTH_SHORT).show()
+                                        } else if (!pictureInPictureState.hasPipPermission) {
+                                            Toast.makeText(context, coreUiR.string.enable_pip_from_settings, Toast.LENGTH_SHORT).show()
+                                            pictureInPictureState.openPictureInPictureSettings()
+                                        } else {
+                                            pictureInPictureState.enterPictureInPictureMode()
+                                        }
+                                    },}

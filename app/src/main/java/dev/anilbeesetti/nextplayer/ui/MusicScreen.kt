@@ -6,7 +6,9 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,13 +23,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -90,140 +97,500 @@ fun scanMusicFiles(context: Context): List<MusicItem> {
                     val artist = cleanMeta(cursor.getString(artistCol), "Unknown Artist")
                     val album = cleanMeta(cursor.getString(albumCol), "Unknown Album")
                     val duration = cursor.getLong(durationCol)
-                    val contentUri = ContentUris.withAppendedId(collection, id)
-                    if (duration > 0) {
-                        musicList.add(MusicItem(id, title, artist, album, duration, contentUri))
-                    }
+                    val contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
+                    musicList.add(MusicItem(id, title, artist, album, duration, contentUri))
                 }
             }
     } catch (_: Exception) {}
     return musicList
 }
 
-fun formatMusicDuration(ms: Long): String {
-    val totalSeconds = ms / 1000
-    val hours = totalSeconds / 3600
-    val minutes = (totalSeconds % 3600) / 60
-    val seconds = totalSeconds % 60
-    return if (hours > 0) String.format("%d:%02d:%02d", hours, minutes, seconds)
-    else String.format("%d:%02d", minutes, seconds)
-}
+private const val PREFS_MUSIC = "music_prefs"
+private const val KEY_FAVORITES = "favorites"
+private const val KEY_RECENT = "recent"
+private const val KEY_PLAYLISTS = "playlists"
+private const val KEY_PLAYLIST_PREFIX = "playlist_"
+private const val MAX_RECENT = 50
 
-fun isMusicFavorite(context: Context, id: Long): Boolean =
-    context.getSharedPreferences("music_prefs", Context.MODE_PRIVATE).getBoolean("fav_$id", false)
+fun getMusicFavorites(context: Context): Set<Long> {
+    val prefs = context.getSharedPreferences(PREFS_MUSIC, Context.MODE_PRIVATE)
+    return prefs.getStringSet(KEY_FAVORITES, emptySet())?.mapNotNull { it.toLongOrNull() }?.toSet() ?: emptySet()
+}
 
 fun toggleMusicFavorite(context: Context, id: Long): Boolean {
-    val prefs = context.getSharedPreferences("music_prefs", Context.MODE_PRIVATE)
-    val newVal = !prefs.getBoolean("fav_$id", false)
-    prefs.edit().putBoolean("fav_$id", newVal).apply()
-    return newVal
+    val prefs = context.getSharedPreferences(PREFS_MUSIC, Context.MODE_PRIVATE)
+    val favs = prefs.getStringSet(KEY_FAVORITES, emptySet())?.toMutableSet() ?: mutableSetOf()
+    val idStr = id.toString()
+    val isFav = if (favs.contains(idStr)) {
+        favs.remove(idStr); false
+    } else {
+        favs.add(idStr); true
+    }
+    prefs.edit().putStringSet(KEY_FAVORITES, favs).apply()
+    return isFav
 }
 
-fun getRecentMusicIds(context: Context): List<Long> {
-    val raw = context.getSharedPreferences("music_prefs", Context.MODE_PRIVATE)
-        .getString("recents", "") ?: ""
-    return if (raw.isEmpty()) emptyList() else raw.split(",").mapNotNull { it.toLongOrNull() }
+fun isMusicFavorite(context: Context, id: Long): Boolean {
+    val prefs = context.getSharedPreferences(PREFS_MUSIC, Context.MODE_PRIVATE)
+    return prefs.getStringSet(KEY_FAVORITES, emptySet())?.contains(id.toString()) == true
 }
 
 fun addToRecentMusic(context: Context, id: Long) {
-    val prefs = context.getSharedPreferences("music_prefs", Context.MODE_PRIVATE)
-    val current = getRecentMusicIds(context).toMutableList()
-    current.remove(id)
-    current.add(0, id)
-    prefs.edit().putString("recents", current.take(50).joinToString(",")).apply()
+    val prefs = context.getSharedPreferences(PREFS_MUSIC, Context.MODE_PRIVATE)
+    val recentStr = prefs.getString(KEY_RECENT, "") ?: ""
+    val recent = if (recentStr.isEmpty()) mutableListOf() else recentStr.split(",").toMutableList()
+    recent.remove(id.toString())
+    recent.add(0, id.toString())
+    if (recent.size > MAX_RECENT) recent.subList(MAX_RECENT, recent.size).clear()
+    prefs.edit().putString(KEY_RECENT, recent.joinToString(",")).apply()
+}
+
+fun getRecentMusicIds(context: Context): List<Long> {
+    val prefs = context.getSharedPreferences(PREFS_MUSIC, Context.MODE_PRIVATE)
+    val recentStr = prefs.getString(KEY_RECENT, "") ?: ""
+    return if (recentStr.isEmpty()) emptyList() else recentStr.split(",").mapNotNull { it.toLongOrNull() }
+}
+
+fun getCustomPlaylists(context: Context): List<String> {
+    val prefs = context.getSharedPreferences(PREFS_MUSIC, Context.MODE_PRIVATE)
+    val playlistsStr = prefs.getString(KEY_PLAYLISTS, "") ?: ""
+    return if (playlistsStr.isEmpty()) emptyList() else playlistsStr.split("|||").filter { it.isNotEmpty() }
+}
+
+fun createPlaylist(context: Context, name: String) {
+    val prefs = context.getSharedPreferences(PREFS_MUSIC, Context.MODE_PRIVATE)
+    val existing = getCustomPlaylists(context).toMutableList()
+    if (!existing.contains(name)) {
+        existing.add(name)
+        prefs.edit().putString(KEY_PLAYLISTS, existing.joinToString("|||")).apply()
+    }
+}
+
+fun deletePlaylist(context: Context, name: String) {
+    val prefs = context.getSharedPreferences(PREFS_MUSIC, Context.MODE_PRIVATE)
+    val existing = getCustomPlaylists(context).toMutableList()
+    existing.remove(name)
+    prefs.edit().putString(KEY_PLAYLISTS, existing.joinToString("|||")).apply()
+    prefs.edit().remove("$KEY_PLAYLIST_PREFIX$name").apply()
+}
+
+fun addToPlaylist(context: Context, playlistName: String, songId: Long) {
+    val prefs = context.getSharedPreferences(PREFS_MUSIC, Context.MODE_PRIVATE)
+    val key = "$KEY_PLAYLIST_PREFIX$playlistName"
+    val current = prefs.getString(key, "") ?: ""
+    val ids = if (current.isEmpty()) mutableListOf() else current.split(",").toMutableList()
+    if (!ids.contains(songId.toString())) ids.add(songId.toString())
+    prefs.edit().putString(key, ids.joinToString(",")).apply()
+}
+
+fun removeFromPlaylist(context: Context, playlistName: String, songId: Long) {
+    val prefs = context.getSharedPreferences(PREFS_MUSIC, Context.MODE_PRIVATE)
+    val key = "$KEY_PLAYLIST_PREFIX$playlistName"
+    val current = prefs.getString(key, "") ?: ""
+    val ids = if (current.isEmpty()) mutableListOf() else current.split(",").toMutableList()
+    ids.remove(songId.toString())
+    prefs.edit().putString(key, ids.joinToString(",")).apply()
+}
+
+fun getPlaylistSongs(context: Context, playlistName: String, allSongs: List<MusicItem>): List<MusicItem> {
+    val prefs = context.getSharedPreferences(PREFS_MUSIC, Context.MODE_PRIVATE)
+    val key = "$KEY_PLAYLIST_PREFIX$playlistName"
+    val current = prefs.getString(key, "") ?: ""
+    if (current.isEmpty()) return emptyList()
+    val ids = current.split(",").mapNotNull { it.toLongOrNull() }
+    val songMap = allSongs.associateBy { it.id }
+    return ids.mapNotNull { songMap[it] }
+}
+
+fun formatMusicDuration(durationMs: Long): String {
+    val totalSeconds = durationMs / 1000
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
+    return "%d:%02d".format(minutes, seconds)
+}
+
+private fun playMusic(context: Context, uri: Uri) {
+    try {
+        context.startActivity(Intent(context, PlayerActivity::class.java).apply {
+            setDataAndType(uri, "audio/*")
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        })
+    } catch (_: Exception) {
+        try {
+            context.startActivity(Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "audio/*")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            })
+        } catch (_: Exception) {}
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MusicScreen(modifier: Modifier = Modifier) {
+fun MusicScreen() {
     val context = LocalContext.current
-    var allMusic by remember { mutableStateOf<List<MusicItem>>(emptyList()) }
+    var allSongs by remember { mutableStateOf<List<MusicItem>>(emptyList()) }
     var selectedTab by remember { mutableIntStateOf(0) }
-    var refreshKey by remember { mutableIntStateOf(0) }
+    var favoriteIds by remember { mutableStateOf(getMusicFavorites(context)) }
+    var recentIds by remember { mutableStateOf(getRecentMusicIds(context)) }
+    var customPlaylists by remember { mutableStateOf(getCustomPlaylists(context)) }
+    var showCreatePlaylist by remember { mutableStateOf(false) }
+    var newPlaylistName by remember { mutableStateOf("") }
+    var selectedPlaylistTab by remember { mutableIntStateOf(0) }
 
-    LaunchedEffect(Unit) { allMusic = scanMusicFiles(context) }
+    LaunchedEffect(Unit) {
+        allSongs = scanMusicFiles(context)
+        favoriteIds = getMusicFavorites(context)
+        recentIds = getRecentMusicIds(context)
+        customPlaylists = getCustomPlaylists(context)
+    }
 
-    Column(modifier = modifier.fillMaxSize()) {
+    val favoriteSongs = allSongs.filter { favoriteIds.contains(it.id) }
+    val recentSongs = run {
+        val songMap = allSongs.associateBy { it.id }
+        recentIds.mapNotNull { songMap[it] }
+    }
+
+    val mainTabs = listOf("All", "Favourites", "Recent", "Playlists")
+
+    Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(title = { Text("Music") })
+
         TabRow(selectedTabIndex = selectedTab) {
-            listOf("All Songs", "Favourite Musics", "Recent").forEachIndexed { i, title ->
-                Tab(selected = selectedTab == i, onClick = { selectedTab = i }, text = { Text(title) })
-            }
-        }
-        if (allMusic.isEmpty()) {
-            EmptyMusicView(message = "No music found", modifier = Modifier.weight(1f))
-        } else {
-            when (selectedTab) {
-                0 -> MusicListView(
-                    items = allMusic, context = context, modifier = Modifier.weight(1f),
-                    onPlay = { m -> addToRecentMusic(context, m.id); refreshKey++; playMusic(context, m.uri) },
-                    onFavoriteToggle = { refreshKey++ },
+            mainTabs.forEachIndexed { idx, label ->
+                Tab(
+                    selected = selectedTab == idx,
+                    onClick = { selectedTab = idx },
+                    text = { Text(label) }
                 )
-                1 -> {
-                    val favs = remember(refreshKey, allMusic) { allMusic.filter { isMusicFavorite(context, it.id) } }
-                    if (favs.isEmpty()) {
-                        EmptyMusicView(message = "No favourite songs yet. Tap the heart icon to add.", modifier = Modifier.weight(1f))
-                    } else {
-                        MusicListView(items = favs, context = context, modifier = Modifier.weight(1f),
-                            onPlay = { m -> addToRecentMusic(context, m.id); refreshKey++; playMusic(context, m.uri) },
-                            onFavoriteToggle = { refreshKey++ })
-                    }
-                }
-                2 -> {
-                    val recentIds = remember(refreshKey) { getRecentMusicIds(context) }
-                    val recentMusic = remember(refreshKey, allMusic) {
-                        val byId = allMusic.associateBy { it.id }
-                        recentIds.mapNotNull { byId[it] }
-                    }
-                    if (recentMusic.isEmpty()) {
-                        EmptyMusicView(message = "No recently played songs", modifier = Modifier.weight(1f))
-                    } else {
-                        MusicListView(items = recentMusic, context = context, modifier = Modifier.weight(1f),
-                            onPlay = { m -> addToRecentMusic(context, m.id); refreshKey++; playMusic(context, m.uri) },
-                            onFavoriteToggle = { refreshKey++ })
-                    }
-                }
             }
         }
-    }
-}
 
-@Composable
-private fun EmptyMusicView(message: String, modifier: Modifier = Modifier) {
-    Box(modifier = modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(
-                painter = painterResource(coreUiR.drawable.ic_music_note),
-                contentDescription = null,
-                modifier = Modifier.size(64.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+        when (selectedTab) {
+            0 -> MusicList(
+                songs = allSongs,
+                context = context,
+                customPlaylists = customPlaylists,
+                onPlay = { song ->
+                    addToRecentMusic(context, song.id)
+                    recentIds = getRecentMusicIds(context)
+                    playMusic(context, song.uri)
+                },
+                onFavoriteToggle = { favoriteIds = getMusicFavorites(context) },
+                onAddToPlaylist = { song, playlist ->
+                    addToPlaylist(context, playlist, song.id)
+                }
             )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(text = message, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            1 -> MusicList(
+                songs = favoriteSongs,
+                context = context,
+                customPlaylists = customPlaylists,
+                emptyMessage = "No favourite songs yet.\nTap the heart icon on any song.",
+                onPlay = { song ->
+                    addToRecentMusic(context, song.id)
+                    recentIds = getRecentMusicIds(context)
+                    playMusic(context, song.uri)
+                },
+                onFavoriteToggle = { favoriteIds = getMusicFavorites(context) },
+                onAddToPlaylist = { song, playlist ->
+                    addToPlaylist(context, playlist, song.id)
+                }
+            )
+            2 -> MusicList(
+                songs = recentSongs,
+                context = context,
+                customPlaylists = customPlaylists,
+                emptyMessage = "No recently played songs.",
+                onPlay = { song ->
+                    addToRecentMusic(context, song.id)
+                    recentIds = getRecentMusicIds(context)
+                    playMusic(context, song.uri)
+                },
+                onFavoriteToggle = { favoriteIds = getMusicFavorites(context) },
+                onAddToPlaylist = { song, playlist ->
+                    addToPlaylist(context, playlist, song.id)
+                }
+            )
+            3 -> PlaylistsSection(
+                context = context,
+                customPlaylists = customPlaylists,
+                allSongs = allSongs,
+                onCreatePlaylist = { showCreatePlaylist = true },
+                onDeletePlaylist = { name ->
+                    deletePlaylist(context, name)
+                    customPlaylists = getCustomPlaylists(context)
+                },
+                onPlay = { song ->
+                    addToRecentMusic(context, song.id)
+                    recentIds = getRecentMusicIds(context)
+                    playMusic(context, song.uri)
+                },
+                onFavoriteToggle = { favoriteIds = getMusicFavorites(context) },
+            )
         }
     }
+
+    if (showCreatePlaylist) {
+        AlertDialog(
+            onDismissRequest = {
+                showCreatePlaylist = false
+                newPlaylistName = ""
+            },
+            title = { Text("Create Playlist") },
+            text = {
+                OutlinedTextField(
+                    value = newPlaylistName,
+                    onValueChange = { newPlaylistName = it },
+                    label = { Text("Playlist Name") },
+                    singleLine = true,
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (newPlaylistName.isNotBlank()) {
+                        createPlaylist(context, newPlaylistName.trim())
+                        customPlaylists = getCustomPlaylists(context)
+                        newPlaylistName = ""
+                        showCreatePlaylist = false
+                    }
+                }) { Text("Create") }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showCreatePlaylist = false
+                    newPlaylistName = ""
+                }) { Text("Cancel") }
+            }
+        )
+    }
 }
 
 @Composable
-private fun MusicListView(
-    items: List<MusicItem>,
+fun PlaylistsSection(
     context: Context,
-    modifier: Modifier = Modifier,
+    customPlaylists: List<String>,
+    allSongs: List<MusicItem>,
+    onCreatePlaylist: () -> Unit,
+    onDeletePlaylist: (String) -> Unit,
     onPlay: (MusicItem) -> Unit,
     onFavoriteToggle: () -> Unit,
 ) {
-    LazyColumn(modifier = modifier.fillMaxWidth(), contentPadding = PaddingValues(vertical = 4.dp)) {
-        items(items, key = { it.id }) { music ->
-            MusicRow(music = music, context = context, onClick = { onPlay(music) }, onFavoriteToggle = onFavoriteToggle)
+    var selectedPlaylist by remember { mutableStateOf<String?>(null) }
+    var showDeleteDialog by remember { mutableStateOf<String?>(null) }
+
+    if (selectedPlaylist != null) {
+        val playlistSongs = getPlaylistSongs(context, selectedPlaylist!!, allSongs)
+        Column(modifier = Modifier.fillMaxSize()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(onClick = { selectedPlaylist = null }) {
+                    Icon(
+                        painter = painterResource(coreUiR.drawable.ic_arrow_left),
+                        contentDescription = "Back",
+                    )
+                }
+                Text(
+                    text = selectedPlaylist!!,
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            MusicList(
+                songs = playlistSongs,
+                context = context,
+                customPlaylists = emptyList(),
+                emptyMessage = "No songs in this playlist.\nGo to All Songs and long-press to add.",
+                onPlay = onPlay,
+                onFavoriteToggle = onFavoriteToggle,
+                onAddToPlaylist = { _, _ -> },
+            )
+        }
+        return
+    }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "My Playlists",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.weight(1f),
+            )
+            IconButton(onClick = onCreatePlaylist) {
+                Icon(
+                    painter = painterResource(coreUiR.drawable.ic_add),
+                    contentDescription = "Create Playlist",
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+            }
+        }
+
+        if (customPlaylists.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        painter = painterResource(coreUiR.drawable.ic_playlist),
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "No playlists yet.\nTap + to create a playlist.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    )
+                }
+            }
+        } else {
+            LazyColumn(contentPadding = PaddingValues(bottom = 80.dp)) {
+                items(customPlaylists) { playlist ->
+                    var showMenu by remember { mutableStateOf(false) }
+                    val songCount = getPlaylistSongs(context, playlist, customPlaylists.map { MusicItem(0L,"","","",0L, Uri.EMPTY) }).size
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { selectedPlaylist = playlist }
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            painter = painterResource(coreUiR.drawable.ic_playlist),
+                            contentDescription = null,
+                            modifier = Modifier.size(40.dp),
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = playlist,
+                                style = MaterialTheme.typography.bodyLarge,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Text(
+                                text = "${getPlaylistSongs(context, playlist, customPlaylists.map { MusicItem(0L, it,"","",0L,Uri.EMPTY) }).size} songs",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Box {
+                            IconButton(onClick = { showMenu = true }) {
+                                Icon(
+                                    painter = painterResource(coreUiR.drawable.ic_more_vert),
+                                    contentDescription = "More options",
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = showMenu,
+                                onDismissRequest = { showMenu = false },
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("Delete Playlist") },
+                                    onClick = {
+                                        showMenu = false
+                                        showDeleteDialog = playlist
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (showDeleteDialog != null) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = null },
+            title = { Text("Delete Playlist") },
+            text = { Text("Delete \"${showDeleteDialog}\"?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    onDeletePlaylist(showDeleteDialog!!)
+                    showDeleteDialog = null
+                }) { Text("Delete") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = null }) { Text("Cancel") }
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun MusicList(
+    songs: List<MusicItem>,
+    context: Context,
+    customPlaylists: List<String>,
+    emptyMessage: String = "No music found.",
+    onPlay: (MusicItem) -> Unit,
+    onFavoriteToggle: () -> Unit,
+    onAddToPlaylist: (MusicItem, String) -> Unit,
+) {
+    if (songs.isEmpty()) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = emptyMessage,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            )
+        }
+        return
+    }
+
+    LazyColumn(contentPadding = PaddingValues(bottom = 80.dp)) {
+        items(songs, key = { it.id }) { music ->
+            MusicItemRow(
+                music = music,
+                context = context,
+                customPlaylists = customPlaylists,
+                onPlay = { onPlay(music) },
+                onFavoriteToggle = onFavoriteToggle,
+                onAddToPlaylist = { playlist -> onAddToPlaylist(music, playlist) },
+            )
         }
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun MusicRow(music: MusicItem, context: Context, onClick: () -> Unit, onFavoriteToggle: () -> Unit) {
-    var isFav by remember { mutableStateOf(isMusicFavorite(context, music.id)) }
+fun MusicItemRow(
+    music: MusicItem,
+    context: Context,
+    customPlaylists: List<String>,
+    onPlay: () -> Unit,
+    onFavoriteToggle: () -> Unit,
+    onAddToPlaylist: (String) -> Unit,
+) {
+    var isFav by remember(music.id) { mutableStateOf(isMusicFavorite(context, music.id)) }
+    var showContextMenu by remember { mutableStateOf(false) }
+
     Row(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 16.dp, vertical = 10.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .combinedClickable(
+                onClick = onPlay,
+                onLongClick = { showContextMenu = true },
+            )
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
@@ -234,9 +601,21 @@ private fun MusicRow(music: MusicItem, context: Context, onClick: () -> Unit, on
         )
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = music.title, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(
-                text = "${music.artist} — ${music.album}",
+                text = music.title,
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = music.artist,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = music.album,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
@@ -260,21 +639,39 @@ private fun MusicRow(music: MusicItem, context: Context, onClick: () -> Unit, on
                 modifier = Modifier.size(20.dp),
             )
         }
-    }
-}
 
-private fun playMusic(context: Context, uri: Uri) {
-    try {
-        context.startActivity(Intent(context, PlayerActivity::class.java).apply {
-            data = uri
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        })
-    } catch (_: Exception) {
-        try {
-            context.startActivity(Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(uri, "audio/*")
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            })
-        } catch (_: Exception) {}
+        Box {
+            DropdownMenu(
+                expanded = showContextMenu,
+                onDismissRequest = { showContextMenu = false },
+            ) {
+                DropdownMenuItem(
+                    text = { Text(if (isFav) "Remove from Favourites" else "Add to Favourites") },
+                    onClick = {
+                        showContextMenu = false
+                        isFav = toggleMusicFavorite(context, music.id)
+                        onFavoriteToggle()
+                    }
+                )
+                if (customPlaylists.isNotEmpty()) {
+                    customPlaylists.forEach { playlist ->
+                        DropdownMenuItem(
+                            text = { Text("Add to: $playlist") },
+                            onClick = {
+                                showContextMenu = false
+                                onAddToPlaylist(playlist)
+                            }
+                        )
+                    }
+                }
+                DropdownMenuItem(
+                    text = { Text("Play") },
+                    onClick = {
+                        showContextMenu = false
+                        onPlay()
+                    }
+                )
+            }
+        }
     }
 }

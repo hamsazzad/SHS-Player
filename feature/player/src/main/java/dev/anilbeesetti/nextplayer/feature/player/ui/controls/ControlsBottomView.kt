@@ -165,13 +165,11 @@ fun ControlsBottomView(
                     contentDescription = null,
                 )
             }
-            if (isPipSupported) {
-                PlayerButton(onClick = onPictureInPictureClick) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_pip),
-                        contentDescription = null,
-                    )
-                }
+            PlayerButton(onClick = onPictureInPictureClick) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_pip),
+                    contentDescription = null,
+                )
             }
             PlayerButton(onClick = onPlayInBackgroundClick) {
                 Icon(

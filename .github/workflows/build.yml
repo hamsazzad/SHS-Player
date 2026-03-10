@@ -38,31 +38,31 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Build All Architecture APKs
-        run: ./gradlew assembleRelease --no-daemon -PdisablePreDex
+      - name: Build All Architecture APKs (Debug-signed Release)
+        run: ./gradlew assembleRelease-with-debug-signing --no-daemon
 
       - name: Rename APKs
         run: |
-          BUILD_DIR="app/build/outputs/apk/release"
-          mkdir -p $BUILD_DIR/renamed
-          for f in $BUILD_DIR/*.apk; do
+          BUILD_DIR="app/build/outputs/apk/release-with-debug-signing"
+          DEST_DIR="app/build/outputs/apk/final"
+          mkdir -p "$DEST_DIR"
+          for f in "$BUILD_DIR"/*.apk; do
             name=$(basename "$f")
             case "$name" in
-              *arm64-v8a*)  mv "$f" "$BUILD_DIR/renamed/SHS-Player-arm64-v8a.apk" ;;
-              *armeabi-v7a*) mv "$f" "$BUILD_DIR/renamed/SHS-Player-armeabi-v7a.apk" ;;
-              *x86_64*)     mv "$f" "$BUILD_DIR/renamed/SHS-Player-x86_64.apk" ;;
-              *x86*)        mv "$f" "$BUILD_DIR/renamed/SHS-Player-x86.apk" ;;
-              *universal*)  mv "$f" "$BUILD_DIR/renamed/SHS-Player-universal.apk" ;;
-              *)            mv "$f" "$BUILD_DIR/renamed/$name" ;;
+              *arm64-v8a*)  cp "$f" "$DEST_DIR/SHS-Player-arm64-v8a.apk" ;;
+              *armeabi-v7a*) cp "$f" "$DEST_DIR/SHS-Player-armeabi-v7a.apk" ;;
+              *x86_64*)     cp "$f" "$DEST_DIR/SHS-Player-x86_64.apk" ;;
+              *x86-*)        cp "$f" "$DEST_DIR/SHS-Player-x86.apk" ;;
+              *universal*)  cp "$f" "$DEST_DIR/SHS-Player-universal.apk" ;;
             esac
           done
-          ls -la $BUILD_DIR/renamed/
+          ls -la "$DEST_DIR/"
 
       - name: Upload APKs as Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: SHS-Player-APKs
-          path: app/build/outputs/apk/release/renamed/*.apk
+          path: app/build/outputs/apk/final/*.apk
           if-no-files-found: warn
           retention-days: 30
 
@@ -71,7 +71,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v0.15.4
-          files: app/build/outputs/apk/release/renamed/*.apk
+          files: app/build/outputs/apk/final/*.apk
           fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

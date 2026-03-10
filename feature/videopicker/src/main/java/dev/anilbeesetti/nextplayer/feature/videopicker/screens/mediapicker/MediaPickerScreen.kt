@@ -89,8 +89,6 @@ import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.composables.PermissionMissingView
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Search
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
@@ -232,7 +230,7 @@ internal fun MediaPickerScreen(
                             if (!isSearchActive) searchQuery = ""
                         }) {
                             Icon(
-                                imageVector = if (isSearchActive) NextIcons.Close else Icons.Rounded.Search,
+                                imageVector = if (isSearchActive) NextIcons.Close else NextIcons.Search,
                                 contentDescription = if (isSearchActive) "Close Search" else "Search",
                             )
                         }
@@ -266,7 +264,7 @@ internal fun MediaPickerScreen(
                     placeholder = { Text("Search videos, folders...") },
                     singleLine = true,
                     leadingIcon = {
-                        Icon(imageVector = Icons.Rounded.Search, contentDescription = null)
+                        Icon(imageVector = NextIcons.Search, contentDescription = null)
                     },
                     trailingIcon = {
                         if (searchQuery.isNotEmpty()) {

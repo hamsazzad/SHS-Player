@@ -25,6 +25,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -50,16 +52,27 @@ class PlayerViewModel @Inject constructor(
     private var currentVideoUri = MutableStateFlow("")
     private var sleepTimerJob: Job? = null
 
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     val bookmarks: Flow<List<BookmarkItem>> = currentVideoUri
-        .let { uriFlow ->
-            bookmarkDao.getAllBookmarks().map { list ->
-                list.filter { it.videoUri == currentVideoUri.value }
-                    .map { BookmarkItem(id = it.id, position = it.position, label = it.label) }
+        .flatMapLatest { uri ->
+            if (uri.isEmpty()) {
+                kotlinx.coroutines.flow.flowOf(emptyList())
+            } else {
+                bookmarkDao.getBookmarksForVideo(uri).map { list ->
+                    list.map { BookmarkItem(id = it.id, position = it.position, label = it.label) }
+                }
             }
         }
 
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     val isFavorite: Flow<Boolean> = currentVideoUri
-        .let { favoriteDao.isFavorite(currentVideoUri.value) }
+        .flatMapLatest { uri ->
+            if (uri.isEmpty()) {
+                kotlinx.coroutines.flow.flowOf(false)
+            } else {
+                favoriteDao.isFavorite(uri)
+            }
+        }
 
     init {
         viewModelScope.launch {
@@ -135,9 +148,7 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch {
             val uri = currentVideoUri.value
             if (uri.isNotEmpty()) {
-                val exists = favoriteDao.isFavorite(uri)
-                var isFav = false
-                exists.collect { isFav = it; return@collect }
+                val isFav = favoriteDao.isFavorite(uri).first()
                 if (isFav) {
                     favoriteDao.removeFavorite(uri)
                 } else {

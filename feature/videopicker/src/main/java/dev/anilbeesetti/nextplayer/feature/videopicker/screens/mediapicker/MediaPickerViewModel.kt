@@ -94,28 +94,27 @@ class MediaPickerViewModel @Inject constructor(
 
     private fun deleteFolders(folders: List<Folder>) {
         viewModelScope.launch {
-            for (folder in folders) {
-                mediaService.deleteDirectories(listOf(folder.path))
+            val uris = folders.flatMap { folder ->
+                folder.allMediaList.map { it.uriString.toUri() }
             }
+            if (uris.isNotEmpty()) mediaService.deleteMedia(uris)
         }
     }
 
     private fun deleteVideos(uris: List<String>) {
         viewModelScope.launch {
-            mediaService.deleteMedia(uris)
+            mediaService.deleteMedia(uris.map { it.toUri() })
         }
     }
 
     private fun shareVideos(uris: List<String>) {
         viewModelScope.launch {
-            mediaService.shareMedia(uris)
+            mediaService.shareMedia(uris.map { it.toUri() })
         }
     }
 
     private fun addToMediaInfoSynchronizer(uri: Uri) {
-        viewModelScope.launch {
-            mediaInfoSynchronizer.addToSyncQueue(uri)
-        }
+        mediaInfoSynchronizer.sync(uri)
     }
 
     private fun renameVideo(uri: Uri, to: String) {
@@ -127,7 +126,7 @@ class MediaPickerViewModel @Inject constructor(
     private fun refresh() {
         viewModelScope.launch {
             uiStateInternal.update { it.copy(refreshing = true) }
-            mediaSynchronizer.sync()
+            mediaSynchronizer.refresh()
             uiStateInternal.update { it.copy(refreshing = false) }
         }
     }
@@ -157,3 +156,4 @@ sealed interface MediaPickerUiEvent {
     data class AddToSync(val uri: Uri) : MediaPickerUiEvent
     data class UpdateMenu(val preferences: ApplicationPreferences) : MediaPickerUiEvent
 }
+

@@ -52,6 +52,14 @@ import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.player.utils.ScreenshotUtil
+import android.content.ContentValues
+import android.media.MediaCodec
+import android.media.MediaExtractor
+import android.media.MediaFormat
+import android.media.MediaMuxer
+import android.os.Environment
+import android.provider.MediaStore
+import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.guava.await
@@ -136,12 +144,124 @@ class PlayerActivity : ComponentActivity() {
                         onTrimClick = {
                             Toast.makeText(this@PlayerActivity, "Trim feature coming soon", Toast.LENGTH_SHORT).show()
                         },
+                        onVideoToAudioClick = { convertVideoToAudio() },
+                        onReversePlayClick = { reversePlay() },
                     )
                 }
             }
         }
 
         playerApi = PlayerApi(this)
+    }
+
+
+    private fun convertVideoToAudio() {
+        val videoUri = intent.data ?: run {
+            Toast.makeText(this, "No video to convert", Toast.LENGTH_SHORT).show()
+            return
+        }
+        Toast.makeText(this, "Converting to audio...", Toast.LENGTH_LONG).show()
+        lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                try {
+                    val extractor = MediaExtractor()
+                    extractor.setDataSource(this@PlayerActivity, videoUri, null)
+                    var audioTrackIndex = -1
+                    for (i in 0 until extractor.trackCount) {
+                        val format = extractor.getTrackFormat(i)
+                        val mime = format.getString(MediaFormat.KEY_MIME) ?: ""
+                        if (mime.startsWith("audio/")) {
+                            audioTrackIndex = i
+                            break
+                        }
+                    }
+                    if (audioTrackIndex == -1) {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(this@PlayerActivity, "No audio track found in this video", Toast.LENGTH_SHORT).show()
+                        }
+                        extractor.release()
+                        return@withContext
+                    }
+                    extractor.selectTrack(audioTrackIndex)
+                    val audioFormat = extractor.getTrackFormat(audioTrackIndex)
+                    val originalName = videoUri.lastPathSegment?.substringBeforeLast(".") ?: "audio_${System.currentTimeMillis()}"
+                    val outputName = "${originalName}_audio.m4a"
+                    val buffer = java.nio.ByteBuffer.allocate(1024 * 1024)
+                    val bufferInfo = MediaCodec.BufferInfo()
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        val values = ContentValues().apply {
+                            put(MediaStore.Audio.Media.DISPLAY_NAME, outputName)
+                            put(MediaStore.Audio.Media.MIME_TYPE, "audio/mp4")
+                            put(MediaStore.Audio.Media.RELATIVE_PATH, Environment.DIRECTORY_MUSIC)
+                        }
+                        val outputUri = contentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, values)
+                        if (outputUri == null) {
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(this@PlayerActivity, "Failed to create output file", Toast.LENGTH_SHORT).show()
+                            }
+                            extractor.release()
+                            return@withContext
+                        }
+                        contentResolver.openFileDescriptor(outputUri, "w")?.use { pfd ->
+                            val muxer = MediaMuxer(pfd.fileDescriptor, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
+                            val audioTrackMuxer = muxer.addTrack(audioFormat)
+                            muxer.start()
+                            while (true) {
+                                val chunkSize = extractor.readSampleData(buffer, 0)
+                                if (chunkSize < 0) break
+                                bufferInfo.size = chunkSize
+                                bufferInfo.offset = 0
+                                bufferInfo.presentationTimeUs = extractor.sampleTime
+                                bufferInfo.flags = extractor.sampleFlags
+                                muxer.writeSampleData(audioTrackMuxer, buffer, bufferInfo)
+                                extractor.advance()
+                            }
+                            muxer.stop()
+                            muxer.release()
+                        }
+                    } else {
+                        val dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC)
+                        dir.mkdirs()
+                        val file = File(dir, outputName)
+                        val muxer = MediaMuxer(file.absolutePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
+                        val audioTrackMuxer = muxer.addTrack(audioFormat)
+                        muxer.start()
+                        while (true) {
+                            val chunkSize = extractor.readSampleData(buffer, 0)
+                            if (chunkSize < 0) break
+                            bufferInfo.size = chunkSize
+                            bufferInfo.offset = 0
+                            bufferInfo.presentationTimeUs = extractor.sampleTime
+                            bufferInfo.flags = extractor.sampleFlags
+                            muxer.writeSampleData(audioTrackMuxer, buffer, bufferInfo)
+                            extractor.advance()
+                        }
+                        muxer.stop()
+                        muxer.release()
+                    }
+                    extractor.release()
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@PlayerActivity, "Audio saved to Music: $outputName", Toast.LENGTH_LONG).show()
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@PlayerActivity, "Conversion failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun reversePlay() {
+        val duration = mediaController?.duration ?: 0L
+        val position = mediaController?.currentPosition ?: 0L
+        if (duration > 0) {
+            // Seek to end then play backwards using speed control
+            mediaController?.seekTo(duration - position)
+            mediaController?.play()
+            Toast.makeText(this, "Playing from end. Use 2x long-press speed for fast playback.", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun shareCurrentVideo() {

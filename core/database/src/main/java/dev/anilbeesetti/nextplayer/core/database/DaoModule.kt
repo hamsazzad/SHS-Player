@@ -4,7 +4,9 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import dev.anilbeesetti.nextplayer.core.database.dao.BookmarkDao
 import dev.anilbeesetti.nextplayer.core.database.dao.DirectoryDao
+import dev.anilbeesetti.nextplayer.core.database.dao.FavoriteDao
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumDao
 
 @Module
@@ -19,4 +21,10 @@ object DaoModule {
 
     @Provides
     fun provideDirectoryDao(db: MediaDatabase): DirectoryDao = db.directoryDao()
+
+    @Provides
+    fun provideBookmarkDao(db: MediaDatabase): BookmarkDao = db.bookmarkDao()
+
+    @Provides
+    fun provideFavoriteDao(db: MediaDatabase): FavoriteDao = db.favoriteDao()
 }

@@ -132,12 +132,26 @@ class PlayerActivity : ComponentActivity() {
                             finish()
                         },
                         onScreenshotClick = { captureScreenshot() },
+                        onShareClick = { shareCurrentVideo() },
+                        onTrimClick = {
+                            Toast.makeText(this@PlayerActivity, "Trim feature coming soon", Toast.LENGTH_SHORT).show()
+                        },
                     )
                 }
             }
         }
 
         playerApi = PlayerApi(this)
+    }
+
+    private fun shareCurrentVideo() {
+        val videoUri = intent.data ?: return
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "video/*"
+            putExtra(Intent.EXTRA_STREAM, videoUri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        startActivity(Intent.createChooser(shareIntent, getString(coreUiR.string.share_video)))
     }
 
     private fun captureScreenshot() {
@@ -239,6 +253,7 @@ class PlayerActivity : ComponentActivity() {
 
     private fun startPlayback() {
         val uri = intent.data ?: return
+        viewModel.setCurrentVideoUri(uri.toString())
 
         val returningFromBackground = !isIntentNew && mediaController?.currentMediaItem != null
         val isNewUriTheCurrentMediaItem = mediaController?.currentMediaItem?.localConfiguration?.uri.toString() == uri.toString()

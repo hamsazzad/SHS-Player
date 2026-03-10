@@ -4,11 +4,15 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import dev.anilbeesetti.nextplayer.core.database.dao.BookmarkDao
 import dev.anilbeesetti.nextplayer.core.database.dao.DirectoryDao
+import dev.anilbeesetti.nextplayer.core.database.dao.FavoriteDao
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumDao
 import dev.anilbeesetti.nextplayer.core.database.dao.MediumStateDao
 import dev.anilbeesetti.nextplayer.core.database.entities.AudioStreamInfoEntity
+import dev.anilbeesetti.nextplayer.core.database.entities.BookmarkEntity
 import dev.anilbeesetti.nextplayer.core.database.entities.DirectoryEntity
+import dev.anilbeesetti.nextplayer.core.database.entities.FavoriteEntity
 import dev.anilbeesetti.nextplayer.core.database.entities.MediumEntity
 import dev.anilbeesetti.nextplayer.core.database.entities.MediumStateEntity
 import dev.anilbeesetti.nextplayer.core.database.entities.SubtitleStreamInfoEntity
@@ -22,8 +26,10 @@ import dev.anilbeesetti.nextplayer.core.database.entities.VideoStreamInfoEntity
         VideoStreamInfoEntity::class,
         AudioStreamInfoEntity::class,
         SubtitleStreamInfoEntity::class,
+        BookmarkEntity::class,
+        FavoriteEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 abstract class MediaDatabase : RoomDatabase() {
@@ -33,6 +39,10 @@ abstract class MediaDatabase : RoomDatabase() {
     abstract fun mediumStateDao(): MediumStateDao
 
     abstract fun directoryDao(): DirectoryDao
+
+    abstract fun bookmarkDao(): BookmarkDao
+
+    abstract fun favoriteDao(): FavoriteDao
 
     companion object {
         const val DATABASE_NAME = "media_db"
@@ -166,13 +176,35 @@ abstract class MediaDatabase : RoomDatabase() {
 
         val MIGRATION_2_3 = object : Migration(2, 3) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                // Drop the unique index on path
                 db.execSQL("DROP INDEX IF EXISTS `index_media_path`")
-
-                // Recreate the index without unique constraint
                 db.execSQL(
                     """
                     CREATE INDEX IF NOT EXISTS `index_media_path` ON `media` (`path`)
+                    """,
+                )
+            }
+        }
+
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `bookmarks` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `video_uri` TEXT NOT NULL,
+                        `position` INTEGER NOT NULL,
+                        `label` TEXT NOT NULL,
+                        `timestamp` INTEGER NOT NULL
+                    )
+                    """,
+                )
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `favorites` (
+                        `video_uri` TEXT NOT NULL,
+                        `timestamp` INTEGER NOT NULL,
+                        PRIMARY KEY(`video_uri`)
+                    )
                     """,
                 )
             }

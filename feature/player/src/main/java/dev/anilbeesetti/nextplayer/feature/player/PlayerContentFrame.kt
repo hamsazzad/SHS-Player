@@ -38,6 +38,7 @@ fun PlayerContentFrame(
     videoZoomAndContentScaleState: VideoZoomAndContentScaleState,
     volumeAndBrightnessGestureState: VolumeAndBrightnessGestureState,
     subtitleConfiguration: SubtitleConfiguration,
+    isMirrored: Boolean = false,
 ) {
     val presentationState = rememberPresentationState(player)
     PlayerSurface(
@@ -64,7 +65,7 @@ fun PlayerContentFrame(
                 pictureInPictureState.setVideoViewRect(rect)
             }
             .graphicsLayer {
-                scaleX = videoZoomAndContentScaleState.zoom
+                scaleX = videoZoomAndContentScaleState.zoom * if (isMirrored) -1f else 1f
                 scaleY = videoZoomAndContentScaleState.zoom
                 translationX = videoZoomAndContentScaleState.offset.x
                 translationY = videoZoomAndContentScaleState.offset.y

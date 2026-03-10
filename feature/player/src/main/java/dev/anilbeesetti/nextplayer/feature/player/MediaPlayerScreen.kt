@@ -33,8 +33,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -50,6 +53,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import dev.anilbeesetti.nextplayer.core.model.ControlButtonsPosition
@@ -76,11 +80,14 @@ import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeAndBrightn
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeState
 import dev.anilbeesetti.nextplayer.feature.player.state.seekAmountFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.seekToPositionFormated
+import dev.anilbeesetti.nextplayer.feature.player.ui.BookmarkItem
 import dev.anilbeesetti.nextplayer.feature.player.ui.DoubleTapIndicator
 import dev.anilbeesetti.nextplayer.feature.player.ui.OverlayShowView
 import dev.anilbeesetti.nextplayer.feature.player.ui.OverlayView
+import dev.anilbeesetti.nextplayer.feature.player.ui.PlaylistItem
 import dev.anilbeesetti.nextplayer.feature.player.ui.SubtitleConfiguration
 import dev.anilbeesetti.nextplayer.feature.player.ui.VerticalProgressView
+import dev.anilbeesetti.nextplayer.feature.player.ui.VoiceEffect
 import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsBottomView
 import dev.anilbeesetti.nextplayer.feature.player.ui.controls.ControlsTopView
 import kotlin.time.Duration.Companion.seconds
@@ -98,6 +105,8 @@ fun MediaPlayerScreen(
     onBackClick: () -> Unit,
     onPlayInBackgroundClick: () -> Unit,
     onScreenshotClick: () -> Unit = {},
+    onShareClick: () -> Unit = {},
+    onTrimClick: () -> Unit = {},
 ) {
     val volumeState = rememberVolumeState(
         player = player,
@@ -146,6 +155,49 @@ fun MediaPlayerScreen(
         screenOrientation = playerPreferences.playerScreenOrientation,
     )
     val errorState = rememberErrorState(player = player)
+
+    var isMirrored by remember { mutableStateOf(false) }
+    var isFavorite by remember { mutableStateOf(false) }
+    var isHardwareDecoder by remember { mutableStateOf(true) }
+    var abPointA by remember { mutableStateOf<Long?>(null) }
+    var abPointB by remember { mutableStateOf<Long?>(null) }
+    var voiceEffect by remember { mutableStateOf(VoiceEffect.NORMAL) }
+    var eqBrightness by remember { mutableFloatStateOf(1f) }
+    var eqContrast by remember { mutableFloatStateOf(1f) }
+    var eqSaturation by remember { mutableFloatStateOf(1f) }
+
+    val bookmarks by viewModel.bookmarks.collectAsState(initial = emptyList())
+    val isFav by viewModel.isFavorite.collectAsState(initial = false)
+    isFavorite = isFav
+
+    val playlistItems = remember(player.mediaItemCount, player.currentMediaItemIndex) {
+        buildList {
+            for (i in 0 until player.mediaItemCount) {
+                val item = player.getMediaItemAt(i)
+                add(
+                    PlaylistItem(
+                        index = i,
+                        title = item.mediaMetadata.title?.toString()
+                            ?: item.localConfiguration?.uri?.lastPathSegment
+                            ?: "Video ${i + 1}",
+                        uri = item.mediaId,
+                        isPlaying = i == player.currentMediaItemIndex,
+                    ),
+                )
+            }
+        }
+    }
+
+    LaunchedEffect(abPointA, abPointB) {
+        if (abPointA != null && abPointB != null) {
+            while (true) {
+                kotlinx.coroutines.delay(200)
+                if (player.currentPosition >= abPointB!!) {
+                    player.seekTo(abPointA!!)
+                }
+            }
+        }
+    }
 
     LaunchedEffect(pictureInPictureState.isInPictureInPictureMode) {
         if (pictureInPictureState.isInPictureInPictureMode) {
@@ -196,6 +248,7 @@ fun MediaPlayerScreen(
                         textBold = playerPreferences.subtitleTextBold,
                         applyEmbeddedStyles = playerPreferences.applyEmbeddedStyles,
                     ),
+                    isMirrored = isMirrored,
                 )
 
                 if (mediaPresentationState.isBuffering) {
@@ -269,6 +322,14 @@ fun MediaPlayerScreen(
                                     },
                                     onScreenshotClick = onScreenshotClick,
                                     onBackClick = onBackClick,
+                                    onMenuClick = {
+                                        controlsVisibilityState.hideControls()
+                                        overlayView = OverlayView.PLAYER_MENU
+                                    },
+                                    onPlaylistClick = {
+                                        controlsVisibilityState.hideControls()
+                                        overlayView = OverlayView.PLAYLIST_PANEL
+                                    },
                                 )
                             }
                         },
@@ -361,13 +422,75 @@ fun MediaPlayerScreen(
                 }
             }
 
+            val context = LocalContext.current
             OverlayShowView(
                 player = player,
                 overlayView = overlayView,
                 videoContentScale = videoZoomAndContentScaleState.videoContentScale,
+                isMirrored = isMirrored,
+                isFavorite = isFavorite,
+                isHardwareDecoder = isHardwareDecoder,
+                abPointA = abPointA,
+                abPointB = abPointB,
+                currentPosition = mediaPresentationState.position,
+                voiceEffect = voiceEffect,
+                eqBrightness = eqBrightness,
+                eqContrast = eqContrast,
+                eqSaturation = eqSaturation,
+                bookmarks = bookmarks,
+                playlistItems = playlistItems,
                 onDismiss = { overlayView = null },
                 onSelectSubtitleClick = onSelectSubtitleClick,
                 onVideoContentScaleChanged = { videoZoomAndContentScaleState.onVideoContentScaleChanged(it) },
+                onMirrorClick = { isMirrored = !isMirrored },
+                onAbRepeatClick = { overlayView = OverlayView.AB_REPEAT },
+                onDecoderClick = { overlayView = OverlayView.DECODER_SELECTOR },
+                onEqualizerClick = { overlayView = OverlayView.EQUALIZER },
+                onVoiceChangerClick = { overlayView = OverlayView.VOICE_CHANGER },
+                onSleepTimerClick = { overlayView = OverlayView.SLEEP_TIMER },
+                onBookmarkClick = { overlayView = OverlayView.BOOKMARKS },
+                onTrimClick = onTrimClick,
+                onShareClick = onShareClick,
+                onFavoriteClick = {
+                    viewModel.toggleFavorite()
+                    val msg = if (!isFavorite) coreUiR.string.added_to_favorites else coreUiR.string.removed_from_favorites
+                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                },
+                onPlaylistClick = { overlayView = OverlayView.PLAYLIST_PANEL },
+                onAbSetA = { abPointA = player.currentPosition },
+                onAbSetB = { abPointB = player.currentPosition },
+                onAbClear = { abPointA = null; abPointB = null },
+                onSelectHardwareDecoder = { isHardwareDecoder = true },
+                onSelectSoftwareDecoder = { isHardwareDecoder = false },
+                onVoiceEffectSelect = { effect ->
+                    voiceEffect = effect
+                    player.playbackParameters = PlaybackParameters(
+                        player.playbackParameters.speed,
+                        effect.pitch,
+                    )
+                },
+                onSleepTimerSelect = { minutes ->
+                    viewModel.startSleepTimer(minutes, player)
+                    Toast.makeText(context, "Sleep timer set for $minutes minutes", Toast.LENGTH_SHORT).show()
+                },
+                onSleepTimerCancel = {
+                    viewModel.cancelSleepTimer()
+                    Toast.makeText(context, "Sleep timer cancelled", Toast.LENGTH_SHORT).show()
+                },
+                onEqBrightnessChange = { eqBrightness = it },
+                onEqContrastChange = { eqContrast = it },
+                onEqSaturationChange = { eqSaturation = it },
+                onEqReset = { eqBrightness = 1f; eqContrast = 1f; eqSaturation = 1f },
+                onAddBookmark = {
+                    viewModel.addBookmark(player.currentPosition)
+                    Toast.makeText(context, coreUiR.string.bookmark_added, Toast.LENGTH_SHORT).show()
+                },
+                onSeekToBookmark = { position -> player.seekTo(position) },
+                onDeleteBookmark = { id -> viewModel.deleteBookmark(id) },
+                onPlaylistItemClick = { index ->
+                    player.seekTo(index, 0)
+                    player.play()
+                },
             )
         }
     }

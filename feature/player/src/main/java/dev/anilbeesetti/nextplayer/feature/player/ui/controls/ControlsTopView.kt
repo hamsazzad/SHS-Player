@@ -36,6 +36,8 @@ fun ControlsTopView(
     onPlaybackSpeedClick: () -> Unit = {},
     onScreenshotClick: () -> Unit = {},
     onBackClick: () -> Unit,
+    onMenuClick: () -> Unit = {},
+    onPlaylistClick: () -> Unit = {},
 ) {
     val systemBarsPadding = WindowInsets.systemBars.asPaddingValues()
     Row(
@@ -74,6 +76,12 @@ fun ControlsTopView(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            PlayerButton(onClick = onPlaylistClick) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_playlist),
+                    contentDescription = stringResource(R.string.playlist),
+                )
+            }
             PlayerButton(onClick = onScreenshotClick) {
                 Icon(
                     painter = painterResource(R.drawable.ic_screenshot),
@@ -96,6 +104,12 @@ fun ControlsTopView(
                 Icon(
                     painter = painterResource(R.drawable.ic_subtitle_track),
                     contentDescription = null,
+                )
+            }
+            PlayerButton(onClick = onMenuClick) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_more_vert),
+                    contentDescription = stringResource(R.string.more_options),
                 )
             }
         }

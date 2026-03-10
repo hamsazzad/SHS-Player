@@ -4,18 +4,28 @@ import android.net.Uri
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.Player
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.data.repository.MediaRepository
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
+import dev.anilbeesetti.nextplayer.core.database.dao.BookmarkDao
+import dev.anilbeesetti.nextplayer.core.database.dao.FavoriteDao
+import dev.anilbeesetti.nextplayer.core.database.entities.BookmarkEntity
+import dev.anilbeesetti.nextplayer.core.database.entities.FavoriteEntity
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedPlaylistUseCase
 import dev.anilbeesetti.nextplayer.core.model.LoopMode
 import dev.anilbeesetti.nextplayer.core.model.PlayerPreferences
 import dev.anilbeesetti.nextplayer.core.model.Video
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.feature.player.state.VideoZoomEvent
+import dev.anilbeesetti.nextplayer.feature.player.ui.BookmarkItem
 import javax.inject.Inject
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -24,6 +34,8 @@ class PlayerViewModel @Inject constructor(
     private val mediaRepository: MediaRepository,
     private val preferencesRepository: PreferencesRepository,
     private val getSortedPlaylistUseCase: GetSortedPlaylistUseCase,
+    private val bookmarkDao: BookmarkDao,
+    private val favoriteDao: FavoriteDao,
 ) : ViewModel() {
 
     var playWhenReady: Boolean = true
@@ -35,12 +47,30 @@ class PlayerViewModel @Inject constructor(
     )
     val uiState = internalUiState.asStateFlow()
 
+    private var currentVideoUri = MutableStateFlow("")
+    private var sleepTimerJob: Job? = null
+
+    val bookmarks: Flow<List<BookmarkItem>> = currentVideoUri
+        .let { uriFlow ->
+            bookmarkDao.getAllBookmarks().map { list ->
+                list.filter { it.videoUri == currentVideoUri.value }
+                    .map { BookmarkItem(id = it.id, position = it.position, label = it.label) }
+            }
+        }
+
+    val isFavorite: Flow<Boolean> = currentVideoUri
+        .let { favoriteDao.isFavorite(currentVideoUri.value) }
+
     init {
         viewModelScope.launch {
             preferencesRepository.playerPreferences.collect { prefs ->
                 internalUiState.update { it.copy(playerPreferences = prefs) }
             }
         }
+    }
+
+    fun setCurrentVideoUri(uri: String) {
+        currentVideoUri.value = uri
     }
 
     suspend fun getPlaylistFromUri(uri: Uri): List<Video> {
@@ -79,6 +109,66 @@ class PlayerViewModel @Inject constructor(
             is VideoZoomEvent.ZoomChanged -> {
                 updateVideoZoom(event.mediaItem.mediaId, event.zoom)
             }
+        }
+    }
+
+    fun addBookmark(position: Long) {
+        viewModelScope.launch {
+            val label = "Bookmark at ${formatMs(position)}"
+            bookmarkDao.insertBookmark(
+                BookmarkEntity(
+                    videoUri = currentVideoUri.value,
+                    position = position,
+                    label = label,
+                ),
+            )
+        }
+    }
+
+    fun deleteBookmark(id: Long) {
+        viewModelScope.launch {
+            bookmarkDao.deleteBookmark(id)
+        }
+    }
+
+    fun toggleFavorite() {
+        viewModelScope.launch {
+            val uri = currentVideoUri.value
+            if (uri.isNotEmpty()) {
+                val exists = favoriteDao.isFavorite(uri)
+                var isFav = false
+                exists.collect { isFav = it; return@collect }
+                if (isFav) {
+                    favoriteDao.removeFavorite(uri)
+                } else {
+                    favoriteDao.addFavorite(FavoriteEntity(videoUri = uri))
+                }
+            }
+        }
+    }
+
+    fun startSleepTimer(minutes: Int, player: Player) {
+        sleepTimerJob?.cancel()
+        sleepTimerJob = viewModelScope.launch {
+            delay(minutes * 60 * 1000L)
+            player.pause()
+        }
+    }
+
+    fun cancelSleepTimer() {
+        sleepTimerJob?.cancel()
+        sleepTimerJob = null
+    }
+
+    private fun formatMs(ms: Long): String {
+        val totalSeconds = ms / 1000
+        val hours = totalSeconds / 3600
+        val minutes = (totalSeconds % 3600) / 60
+        val seconds = totalSeconds % 60
+        return if (hours > 0) {
+            String.format("%d:%02d:%02d", hours, minutes, seconds)
+        } else {
+            String.format("%d:%02d", minutes, seconds)
         }
     }
 }

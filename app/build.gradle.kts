@@ -50,6 +50,7 @@ android {
         getByName("debug") {
             isDebuggable = true
             applicationIdSuffix = ".debug"
+            resValue("string", "app_name", "SHS Player")
         }
 
         create("release-with-debug-signing") {

@@ -89,6 +89,8 @@ import dev.anilbeesetti.nextplayer.core.ui.components.DoneButton
 import dev.anilbeesetti.nextplayer.core.ui.components.NextDialog
 import dev.anilbeesetti.nextplayer.core.ui.components.NextTopAppBar
 import dev.anilbeesetti.nextplayer.core.ui.composables.PermissionMissingView
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Search
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
 import dev.anilbeesetti.nextplayer.core.ui.preview.DayNightPreview
@@ -155,11 +157,15 @@ internal fun MediaPickerScreen(
     var showInfoActionFor: Video? by rememberSaveable { mutableStateOf(null) }
     var showDeleteVideosConfirmation by rememberSaveable { mutableStateOf(false) }
 
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    var isSearchActive by rememberSaveable { mutableStateOf(false) }
+
     val selectedItemsSize = selectionManager.selectedFolders.size + selectionManager.selectedVideos.size
     val totalItemsSize = (uiState.mediaDataState as? DataState.Success)?.value?.run { folderList.size + mediaList.size } ?: 0
 
     Scaffold(
         topBar = {
+            Column {
             NextTopAppBar(
                 title = (uiState.folderName ?: stringResource(R.string.app_name)).takeIf { !selectionManager.isInSelectionMode } ?: "",
                 fontWeight = FontWeight.Bold.takeIf { uiState.folderName == null },
@@ -221,6 +227,15 @@ internal fun MediaPickerScreen(
                             )
                         }
                     } else {
+                        IconButton(onClick = {
+                            isSearchActive = !isSearchActive
+                            if (!isSearchActive) searchQuery = ""
+                        }) {
+                            Icon(
+                                imageVector = if (isSearchActive) NextIcons.Close else Icons.Rounded.Search,
+                                contentDescription = if (isSearchActive) "Close Search" else "Search",
+                            )
+                        }
                         IconButton(onClick = { showFavoritesOnly = !showFavoritesOnly }) {
                             Icon(
                                 painter = androidx.compose.ui.res.painterResource(R.drawable.ic_favorite),
@@ -243,6 +258,27 @@ internal fun MediaPickerScreen(
                     }
                 },
             )
+            AnimatedVisibility(visible = isSearchActive) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+                    placeholder = { Text("Search videos, folders...") },
+                    singleLine = true,
+                    leadingIcon = {
+                        Icon(imageVector = Icons.Rounded.Search, contentDescription = null)
+                    },
+                    trailingIcon = {
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { searchQuery = "" }) {
+                                Icon(imageVector = NextIcons.Close, contentDescription = "Clear")
+                            }
+                        }
+                    },
+                    shape = RoundedCornerShape(24.dp),
+                )
+            }
+            } // end Column
         },
         bottomBar = {
             SelectionActionsSheet(
@@ -387,15 +423,25 @@ internal fun MediaPickerScreen(
                             return@PermissionMissingView
                         }
 
+                        val searchFilteredFolder = if (searchQuery.isNotBlank()) {
+                            val q = searchQuery.trim()
+                            val filteredVideos = rootFolder.mediaList.filter {
+                                it.displayName.contains(q, ignoreCase = true) || it.nameWithExtension.contains(q, ignoreCase = true)
+                            }
+                            val filteredFolders = rootFolder.folderList.filter { it.name.contains(q, ignoreCase = true) }
+                            rootFolder.copy(mediaList = filteredVideos, folderList = filteredFolders)
+                        } else {
+                            rootFolder
+                        }
                         val filteredRootFolder = if (showFavoritesOnly) {
-                            val favVideos = rootFolder.mediaList.filter { it.uriString in uiState.favoriteUris }
+                            val favVideos = searchFilteredFolder.mediaList.filter { it.uriString in uiState.favoriteUris }
                             if (favVideos.isEmpty()) {
                                 NoVideosFound(contentPadding = updatedScaffoldPadding)
                                 return@PermissionMissingView
                             }
-                            rootFolder.copy(folderList = emptyList(), mediaList = favVideos)
+                            searchFilteredFolder.copy(folderList = emptyList(), mediaList = favVideos)
                         } else {
-                            rootFolder
+                            searchFilteredFolder
                         }
 
                         MediaView(

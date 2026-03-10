@@ -28,11 +28,6 @@ jobs:
           java-version: '17'
           distribution: temurin
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          validate-wrappers: false
-
       - name: Setup Android SDK
         run: |
           echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
@@ -40,41 +35,13 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build All Architecture APKs
-        run: ./gradlew assembleRelease-with-debug-signing --no-daemon
-
-      - name: Rename APKs
-        run: |
-          BUILD_DIR="app/build/outputs/apk/release-with-debug-signing"
-          DEST_DIR="app/build/outputs/apk/final"
-          mkdir -p "$DEST_DIR"
-          for f in "$BUILD_DIR"/*.apk; do
-            name=$(basename "$f")
-            case "$name" in
-              *arm64-v8a*)   cp "$f" "$DEST_DIR/SHS-Player-arm64-v8a.apk" ;;
-              *armeabi-v7a*) cp "$f" "$DEST_DIR/SHS-Player-armeabi-v7a.apk" ;;
-              *x86_64*)      cp "$f" "$DEST_DIR/SHS-Player-x86_64.apk" ;;
-              *x86-*)        cp "$f" "$DEST_DIR/SHS-Player-x86.apk" ;;
-              *universal*)   cp "$f" "$DEST_DIR/SHS-Player-universal.apk" ;;
-            esac
-          done
-          ls -la "$DEST_DIR/"
+      - name: Build Debug APKs
+        run: ./gradlew assembleDebug --no-daemon
 
       - name: Upload APKs as Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: SHS-Player-APKs
-          path: app/build/outputs/apk/final/*.apk
+          name: SHS-Player-Debug-APKs
+          path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: warn
           retention-days: 30
-
-      - name: Update GitHub Release v0.15.4
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.update_release == 'true' }}
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v0.15.4
-          files: app/build/outputs/apk/final/*.apk
-          fail_on_unmatched_files: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-

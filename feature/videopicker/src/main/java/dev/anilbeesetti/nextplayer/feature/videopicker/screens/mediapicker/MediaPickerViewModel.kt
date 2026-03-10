@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
+import dev.anilbeesetti.nextplayer.core.database.dao.FavoriteDao
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedMediaUseCase
 import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaInfoSynchronizer
@@ -32,6 +33,7 @@ class MediaPickerViewModel @Inject constructor(
     private val preferencesRepository: PreferencesRepository,
     private val mediaInfoSynchronizer: MediaInfoSynchronizer,
     private val mediaSynchronizer: MediaSynchronizer,
+    private val favoriteDao: FavoriteDao,
 ) : ViewModel() {
 
     private val folderArgs = FolderArgs(savedStateHandle)
@@ -66,6 +68,16 @@ class MediaPickerViewModel @Inject constructor(
                 }
             }
         }
+
+        viewModelScope.launch {
+            favoriteDao.getAllFavorites().collect { favorites ->
+                uiStateInternal.update { currentState ->
+                    currentState.copy(
+                        favoriteUris = favorites.map { it.videoUri }.toSet(),
+                    )
+                }
+            }
+        }
     }
 
     fun onEvent(event: MediaPickerUiEvent) {
@@ -82,30 +94,27 @@ class MediaPickerViewModel @Inject constructor(
 
     private fun deleteFolders(folders: List<Folder>) {
         viewModelScope.launch {
-            val uris = folders.flatMap { folder ->
-                folder.allMediaList.map { video ->
-                    video.uriString.toUri()
-                }
+            for (folder in folders) {
+                mediaService.deleteDirectories(listOf(folder.path))
             }
-            mediaService.deleteMedia(uris)
         }
     }
 
     private fun deleteVideos(uris: List<String>) {
         viewModelScope.launch {
-            mediaService.deleteMedia(uris.map { it.toUri() })
+            mediaService.deleteMedia(uris)
         }
     }
 
     private fun shareVideos(uris: List<String>) {
         viewModelScope.launch {
-            mediaService.shareMedia(uris.map { it.toUri() })
+            mediaService.shareMedia(uris)
         }
     }
 
     private fun addToMediaInfoSynchronizer(uri: Uri) {
         viewModelScope.launch {
-            mediaInfoSynchronizer.sync(uri)
+            mediaInfoSynchronizer.addToSyncQueue(uri)
         }
     }
 
@@ -118,7 +127,7 @@ class MediaPickerViewModel @Inject constructor(
     private fun refresh() {
         viewModelScope.launch {
             uiStateInternal.update { it.copy(refreshing = true) }
-            mediaSynchronizer.refresh()
+            mediaSynchronizer.sync()
             uiStateInternal.update { it.copy(refreshing = false) }
         }
     }
@@ -136,6 +145,7 @@ data class MediaPickerUiState(
     val mediaDataState: DataState<Folder?> = DataState.Loading,
     val refreshing: Boolean = false,
     val preferences: ApplicationPreferences = ApplicationPreferences(),
+    val favoriteUris: Set<String> = emptySet(),
 )
 
 sealed interface MediaPickerUiEvent {

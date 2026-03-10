@@ -35,16 +35,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.automirrored.rounded.List
-import androidx.compose.material.icons.rounded.ArrowDownward
-import androidx.compose.material.icons.rounded.ArrowUpward
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Folder
-import androidx.compose.material.icons.rounded.GridView
-import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -82,6 +72,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
+import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import dev.anilbeesetti.nextplayer.feature.player.PlayerActivity
 
 // ─── Data Models ─────────────────────────────────────────────────────────────
@@ -343,11 +334,11 @@ fun MusicScreen(modifier: Modifier = Modifier) {
             title = { Text("Music") },
             actions = {
                 IconButton(onClick = { isSearchActive = !isSearchActive; if (!isSearchActive) searchQuery = "" }) {
-                    Icon(imageVector = if (isSearchActive) Icons.Rounded.Close else Icons.Rounded.Search,
+                    Icon(imageVector = if (isSearchActive) NextIcons.Close else NextIcons.Search,
                         contentDescription = if (isSearchActive) "Close Search" else "Search")
                 }
                 IconButton(onClick = { showQuickSettings = true }) {
-                    Icon(imageVector = Icons.Rounded.Settings, contentDescription = "Quick Settings")
+                    Icon(imageVector = NextIcons.Settings, contentDescription = "Quick Settings")
                 }
             }
         )
@@ -359,11 +350,11 @@ fun MusicScreen(modifier: Modifier = Modifier) {
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
                 placeholder = { Text("Search songs, artists, albums...") },
                 singleLine = true,
-                leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
+                leadingIcon = { Icon(NextIcons.Search, contentDescription = null) },
                 trailingIcon = {
                     if (searchQuery.isNotEmpty()) {
                         IconButton(onClick = { searchQuery = "" }) {
-                            Icon(Icons.Rounded.Close, contentDescription = "Clear")
+                            Icon(NextIcons.Close, contentDescription = "Clear")
                         }
                     }
                 },
@@ -386,7 +377,7 @@ fun MusicScreen(modifier: Modifier = Modifier) {
                     onClick = { layoutMode = if (layoutMode == MusicLayoutMode.LIST) MusicLayoutMode.GRID else MusicLayoutMode.LIST },
                     label = { Text(if (layoutMode == MusicLayoutMode.LIST) "List" else "Grid") },
                     leadingIcon = {
-                        Icon(imageVector = if (layoutMode == MusicLayoutMode.LIST) Icons.AutoMirrored.Rounded.List else Icons.Rounded.GridView,
+                        Icon(imageVector = if (layoutMode == MusicLayoutMode.LIST) NextIcons.List else NextIcons.GridView,
                             contentDescription = null, modifier = Modifier.size(16.dp))
                     }
                 )
@@ -549,7 +540,7 @@ fun MusicFoldersList(
                     shape = RoundedCornerShape(8.dp),
                 ) {
                     Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(imageVector = Icons.Rounded.Folder, contentDescription = null,
+                        Icon(imageVector = NextIcons.Folder, contentDescription = null,
                             modifier = Modifier.size(40.dp), tint = MaterialTheme.colorScheme.primary)
                         Spacer(modifier = Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
@@ -557,7 +548,7 @@ fun MusicFoldersList(
                             Text("${folder.songs.size} songs · ${if (folder.isOnSdCard) "SD Card" else "Internal Storage"}",
                                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                        Icon(imageVector = if (isExpanded) Icons.Rounded.ArrowUpward else Icons.Rounded.ArrowDownward,
+                        Icon(imageVector = if (isExpanded) NextIcons.ArrowUpward else NextIcons.ArrowDownward,
                             contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
@@ -595,7 +586,7 @@ fun PlaylistsTab(
             Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = { selectedPlaylist = null }) {
-                    Icon(imageVector = Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
+                    Icon(imageVector = NextIcons.ArrowBack, contentDescription = "Back")
                 }
                 Text(playlist, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
             }
@@ -860,7 +851,7 @@ fun MusicQuickSettingsDialog(
                             },
                             label = { Text(when (by) { MusicSortBy.TITLE -> "Title"; MusicSortBy.DURATION -> "Duration"; MusicSortBy.DATE -> "Date"; MusicSortBy.SIZE -> "Size" }) },
                             trailingIcon = if (sortBy == by) ({
-                                Icon(imageVector = if (sortOrder == MusicSortOrder.ASCENDING) Icons.Rounded.ArrowUpward else Icons.Rounded.ArrowDownward,
+                                Icon(imageVector = if (sortOrder == MusicSortOrder.ASCENDING) NextIcons.ArrowUpward else NextIcons.ArrowDownward,
                                     contentDescription = null, modifier = Modifier.size(16.dp))
                             }) else null,
                         )

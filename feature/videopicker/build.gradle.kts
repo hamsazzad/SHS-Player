@@ -39,6 +39,7 @@ dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:data"))
     implementation(project(":core:domain"))
+    implementation(project(":core:database"))
     implementation(project(":core:media"))
     implementation(project(":core:model"))
 

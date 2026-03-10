@@ -43,6 +43,8 @@ fun BoxScope.OverlayShowView(
     onShareClick: () -> Unit = {},
     onFavoriteClick: () -> Unit = {},
     onPlaylistClick: () -> Unit = {},
+    onVideoToAudioClick: () -> Unit = {},
+    onReversePlayClick: () -> Unit = {},
     onAbSetA: () -> Unit = {},
     onAbSetB: () -> Unit = {},
     onAbClear: () -> Unit = {},
@@ -115,6 +117,8 @@ fun BoxScope.OverlayShowView(
             onShareClick = { onShareClick(); onDismiss() },
             onFavoriteClick = { onFavoriteClick(); onDismiss() },
             onPlaylistClick = { onDismiss(); onPlaylistClick() },
+            onVideoToAudioClick = { onVideoToAudioClick(); onDismiss() },
+            onReversePlayClick = { onReversePlayClick(); onDismiss() },
         )
     }
 

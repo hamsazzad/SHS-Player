@@ -227,7 +227,7 @@ private fun playMusic(context: Context, uri: Uri) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MusicScreen() {
+fun MusicScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     var allSongs by remember { mutableStateOf<List<MusicItem>>(emptyList()) }
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -253,7 +253,7 @@ fun MusicScreen() {
 
     val mainTabs = listOf("All", "Favourites", "Recent", "Playlists")
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = modifier.fillMaxSize()) {
         TopAppBar(title = { Text("Music") })
 
         TabRow(selectedTabIndex = selectedTab) {
@@ -675,3 +675,4 @@ fun MusicItemRow(
         }
     }
 }
+

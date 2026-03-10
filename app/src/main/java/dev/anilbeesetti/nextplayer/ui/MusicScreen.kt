@@ -21,9 +21,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -165,7 +162,7 @@ fun MusicScreen(modifier: Modifier = Modifier) {
                 1 -> {
                     val favs = remember(refreshKey, allMusic) { allMusic.filter { isMusicFavorite(context, it.id) } }
                     if (favs.isEmpty()) {
-                        EmptyMusicView(message = "No favourite songs yet. Tap the heart icon on any song.", modifier = Modifier.weight(1f))
+                        EmptyMusicView(message = "No favourite songs yet. Tap the heart icon to add.", modifier = Modifier.weight(1f))
                     } else {
                         MusicListView(items = favs, context = context, modifier = Modifier.weight(1f),
                             onPlay = { m -> addToRecentMusic(context, m.id); refreshKey++; playMusic(context, m.uri) },
@@ -229,7 +226,12 @@ private fun MusicRow(music: MusicItem, context: Context, onClick: () -> Unit, on
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(painter = painterResource(coreUiR.drawable.ic_music_note), contentDescription = null, modifier = Modifier.size(40.dp), tint = MaterialTheme.colorScheme.primary)
+        Icon(
+            painter = painterResource(coreUiR.drawable.ic_music_note),
+            contentDescription = null,
+            modifier = Modifier.size(40.dp),
+            tint = MaterialTheme.colorScheme.primary,
+        )
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(text = music.title, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -241,13 +243,21 @@ private fun MusicRow(music: MusicItem, context: Context, onClick: () -> Unit, on
                 overflow = TextOverflow.Ellipsis,
             )
         }
-        Text(text = formatMusicDuration(music.duration), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            text = formatMusicDuration(music.duration),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
         Spacer(modifier = Modifier.width(4.dp))
-        IconButton(onClick = { isFav = toggleMusicFavorite(context, music.id); onFavoriteToggle() }) {
+        IconButton(onClick = {
+            isFav = toggleMusicFavorite(context, music.id)
+            onFavoriteToggle()
+        }) {
             Icon(
-                imageVector = if (isFav) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                painter = painterResource(if (isFav) coreUiR.drawable.ic_favorite else coreUiR.drawable.ic_favorite_border),
                 contentDescription = if (isFav) "Remove from favourites" else "Add to favourites",
                 tint = if (isFav) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp),
             )
         }
     }

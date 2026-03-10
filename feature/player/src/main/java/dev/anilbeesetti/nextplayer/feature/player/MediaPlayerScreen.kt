@@ -106,7 +106,9 @@ fun MediaPlayerScreen(
     onPlayInBackgroundClick: () -> Unit,
     onScreenshotClick: () -> Unit = {},
     onShareClick: () -> Unit = {},
-},
+    onTrimClick: () -> Unit = {},
+    onVideoToAudioClick: () -> Unit = {},
+    onReversePlayClick: () -> Unit = {},
 ) {
     val volumeState = rememberVolumeState(
         player = player,
@@ -589,20 +591,4 @@ fun PlayerControlsView(
 
         middleView()
     }
-},
-)/    onTrimClick: () -> Unit = {},
-    onVideoToAudioClick: () -> Unit = {},
-    onReversePlayClick: () -> Unit = {},
-)} else {
-                                            pictureInPictureState.enterPictureInPictureMode()
-                                        }
-                                    },/                                    onPictureInPictureClick = {
-                                        if (!pictureInPictureState.isPipSupported) {
-                                            Toast.makeText(context, "Popup play is not supported on this device", Toast.LENGTH_SHORT).show()
-                                        } else if (!pictureInPictureState.hasPipPermission) {
-                                            Toast.makeText(context, coreUiR.string.enable_pip_from_settings, Toast.LENGTH_SHORT).show()
-                                            pictureInPictureState.openPictureInPictureSettings()
-                                        } else {
-                                            pictureInPictureState.enterPictureInPictureMode()
-                                        }
-                                    },}
+}

@@ -30,6 +30,10 @@ author = "agent"
 task = "workflow.run"
 args = "Start application"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Android Build"
+
 [[workflows.workflow]]
 name = "Start application"
 author = "agent"
@@ -38,3 +42,14 @@ author = "agent"
 task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
+
+[[workflows.workflow]]
+name = "Android Build"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "/tmp/gradle_build.sh"
+
+[workflows.workflow.metadata]
+outputType = "console"

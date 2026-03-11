@@ -24,6 +24,26 @@ Built on the robust core of Media3 (ExoPlayer), **SHS Player** breaks the limits
 
 <br>
 
+## 📸 App Screenshots
+
+<div align="center">
+  <table>
+    <tr>
+      <td><img src="https://i.postimeg.cc/a76f7309a65a4a4889aa7503a982a938.jpg" width="220" alt="Home Screen"/></td>
+      <td><img src="https://i.postimeg.cc/bc9475c4ccbb4935bf3e8f718f8ae0f8.jpg" width="220" alt="Video Player Quick Settings"/></td>
+      <td><img src="https://i.postimeg.cc/0a4bc2c38b0e4cc4ab99c9b493a73ef2.jpg" width="220" alt="Video Player"/></td>
+      <td><img src="https://i.postimeg.cc/fa3d430185b348978c6ddd50edaa97c8.jpg" width="220" alt="Video Player Setting"/></td>
+      <td><img src="https://i.postimeg.cc/3b394f2da2e7425fbbf8c2de2ba0242c.jpg" width="220" alt="Music List"/></td>
+<td><img src="https://i.postimeg.cc/2141ab4ceaa24c5391c421485d9c759f.jpg" width="220" alt="Music Folders List"/></td>
+<td><img src="https://i.postimeg.cc/ed55e0794a6b408a8ecf158dcb31d1b3.jpg" width="220" alt="Music Quick Settings"/></td>
+<td><img src="https://i.postimeg.cc/cc44d142a49f4df7bfc509f1c54dc71b.jpg" width="220" alt="About Page"/></td>
+<td><img src="https://i.postimeg.cc/1c3a2027f651467bbe001fb6d1a479e2.jpg" width="220" alt="Settings"/></td>
+    </tr>
+  </table>
+</div>
+
+<br>
+
 ## 🔥 The "Creator's Arsenal" (Pro Features)
 *Features specifically engineered for editors and power users.*
 

@@ -25,7 +25,7 @@
 <div align="center">
   <table>
     <tr>
-      <td><img src="https://i.postimeg.cc/a76f7309a65a4a4889aa7503a982a938.jpg" width="360" alt="Home Screen"/></td>
+      <td><img src="https://i.postimeg.cc/a76f7309a65a4a4889aa7503a982a938.jpg" width="1000" alt="Home Screen"/></td>
       <td><img src="https://i.postimeg.cc/bc9475c4ccbb4935bf3e8f718f8ae0f8.jpg" width="260" alt="Video Player Quick Settings"/></td>
       <td><img src="https://i.postimeg.cc/0a4bc2c38b0e4cc4ab99c9b493a73ef2.jpg" width="260" alt="Video Player"/></td>
       <td><img src="https://i.postimeg.cc/fa3d430185b348978c6ddd50edaa97c8.jpg" width="260" alt="Video Player Setting"/></td>

@@ -1,52 +1,64 @@
-# SHS Player
+<div align="center">
+  <h1>🎬 SHS Player</h1>
+  <p><b>The Ultimate, Feature-Rich Multimedia Hub for Android.</b></p>
+  <p><i>Powered by Media3 (ExoPlayer) • Zero Ads • Pro Tools</i></p>
 
-A powerful, feature-rich Android video & music player built on Media3 (ExoPlayer).
+  [![Download Latest](https://img.shields.io/badge/Download-v0.15.4-blue?style=for-the-badge&logo=android)](https://github.com/hamsazzad/SHS-Player/releases/tag/v0.15.4)
+  [![Telegram](https://img.shields.io/badge/Telegram-AAMovies-2CA5E0?style=for-the-badge&logo=telegram)](https://t.me/aamoviesofficial)
+  [![License](https://img.shields.io/badge/License-GPL_v3-green?style=for-the-badge)](#license)
+</div>
 
-## Download
+---
 
-[Download Latest APK](https://github.com/hamsazzad/SHS-Player/releases/tag/v0.15.4)
+## 🚀 Why SHS Player?
+Built on top of a lightweight open-source core, **SHS Player** has been heavily modified and supercharged to deliver a premium, all-in-one multimedia experience. Whether you are watching high-bitrate HDR movies, extracting frames for cinematic poster design, or just listening to your favorite tracks in the background—SHS Player handles it all flawlessly without a single annoying ad.
 
-## Features
+## 🔥 Monster Features
 
-### Video Player
-- **Hardware & Software Decoder** – Switch between hardware and software decoding
-- **Mirror Mode** – Horizontal flip for mirrored playback
-- **A-B Repeat** – Set loop points A and B for seamless looping
-- **Video Equalizer** – Adjust brightness, contrast, and saturation
-- **Voice Changer** – Audio effects: Normal, Deep, Robot, Child, Echo
-- **Sleep Timer** – Auto-pause after 5, 10, 15, 30, or 60 minutes
-- **Bookmarks** – Save and jump to position bookmarks per video
-- **Favorites** – Mark videos as favorites
-- **Playlist Panel** – View and navigate all videos in the current folder
-- **Share Video** – Share current video via Android share sheet
-- **Screenshot** – Capture screenshots during playback
-- **Picture-in-Picture (PiP)** – Popup video while using other apps
-- **Playback Speed** – Adjustable speed with long-press fast-forward
-- **Subtitle Support** – Load external subtitles (SRT, ASS, VTT, TTML)
-- **Audio Track Selection** – Switch between audio tracks
-- **Video Zoom & Content Scale** – Pinch to zoom, fit/fill/crop modes
-- **Background Playback** – Continue playing audio in the background
-- **HDR Support** – Hardware-accelerated HDR video playback
-- **Gesture Controls** – Swipe for volume, brightness, and seeking
-- **Screen Lock** – Lock controls to prevent accidental touches
-- **Screen Rotation** – Auto-rotate and manual rotation
+### 🎬 Advanced Video Engine
+* **HW & SW Decoder Switch:** Seamlessly toggle between Hardware and Software decoding for lag-free HEVC/10-bit playback.
+* **Popup Video (PiP):** Multitask like a pro. Keep the video playing in a floating window while using other apps.
+* **Playlist Panel:** *Playit-style* instant playlist. View and navigate through all videos in the current folder without leaving the player screen.
+* **Background Playback:** Turn any video into a podcast. Audio continues playing even when the app is minimized.
+* **HDR Support:** Enjoy breathtaking colors with hardware-accelerated HDR video playback.
 
-### Main App
-- **Bottom Navigation** – Quick tabs for Videos, Music, and Telegram
-- **Video Browser** – Browse all videos on your device by folder
-- **Music Section** – Browse music by All, Playlist, Album, Artist
-- **Join Telegram** – Direct link to our Telegram channel
+### 🛠️ Pro Tools for Creators & Editors
+* **Instant Screenshot:** Dedicated on-screen camera button to capture full-resolution, perfect frames instantly.
+* **Mirror Mode:** Horizontally flip the video—perfect for reference designs and custom edits.
+* **A-B Repeat:** Set custom start (A) and end (B) points to loop specific scenes perfectly.
+* **Video Equalizer:** Take control of the visuals with real-time Brightness, Contrast, and Saturation adjustments.
+* **Voice Changer:** Have fun with audio! Apply effects like *Deep, Robot, Child,* and *Echo*.
 
-### Settings
-- **Appearance** – Theme, dark mode, dynamic colors, high contrast
-- **Player Preferences** – Default decoder, seek increment, gestures
-- **Subtitle Customization** – Font, size, color, background
+### 🎵 Full-Fledged Music Hub
+*Unlike standard video players, SHS Player comes with a completely standalone Music ecosystem.*
+* **Smart Organization:** Browse your library by *All Music, Playlists, Folders, Albums,* and *Artists*.
+* **Custom Playlists:** Create, edit, and manage your own audio playlists easily.
 
-## Telegram
+### 📱 Premium UI & UX
+* **Bottom Navigation Bar:** Lightning-fast switching between *Videos*, *Music*, and our *Telegram* community.
+* **Dynamic Folder Data:** Folders now display the exact number of videos inside them at a glance.
+* **Clean Controls & Gestures:** Swipe controls for volume, brightness, and seeking. Lock controls to prevent accidental touches.
+* **Advanced Subtitles:** Load external subtitles (SRT, ASS, VTT) and completely tweak font, size, color, and background.
 
-Join our Telegram channel for updates and content:
-[https://t.me/aamoviesofficial](https://t.me/aamoviesofficial)
+---
 
-## License
+## 📥 Installation
 
-SHS Player is licensed under the GNU General Public License v3.0.
+Get the ultimate media experience for free, forever. 
+👉 [**Download SHS Player APK (v0.15.4)**](https://github.com/hamsazzad/SHS-Player/releases/tag/v0.15.4)
+
+*(Note: The source code is kept private to protect the custom modifications. This repository provides the official, lifetime-free APK releases.)*
+
+---
+
+## 🌐 Community & Developer
+
+Stay connected with the developer and get the latest updates on movies and the app:
+
+* **Telegram Channel:** [Join @aamoviesofficial](https://t.me/aamoviesofficial)
+* **Developer:** SHS Shobuj (FilmCity Ecosystem)
+
+---
+<div align="center">
+  <sub>Built with ❤️ by SHS Shobuj</sub>
+</div>

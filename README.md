@@ -20,25 +20,24 @@
 ---
 
 ## 📸 App Screenshots
-*Swipe left or right to see all the features in action!*
+*Swipe left or right to see all features!*
 
 <div align="center">
   <table>
     <tr>
-      <td><img src="https://i.postimeg.cc/a76f7309a65a4a4889aa7503a982a938.jpg" width="1000" alt="Home Screen"/></td>
-      <td><img src="https://i.postimeg.cc/bc9475c4ccbb4935bf3e8f718f8ae0f8.jpg" width="260" alt="Video Player Quick Settings"/></td>
-      <td><img src="https://i.postimeg.cc/0a4bc2c38b0e4cc4ab99c9b493a73ef2.jpg" width="260" alt="Video Player"/></td>
-      <td><img src="https://i.postimeg.cc/fa3d430185b348978c6ddd50edaa97c8.jpg" width="260" alt="Video Player Setting"/></td>
-      <td><img src="https://i.postimeg.cc/3b394f2da2e7425fbbf8c2de2ba0242c.jpg" width="260" alt="Music List"/></td>
-      <td><img src="https://i.postimeg.cc/2141ab4ceaa24c5391c421485d9c759f.jpg" width="260" alt="Music Folders List"/></td>
-      <td><img src="https://i.postimeg.cc/ed55e0794a6b408a8ecf158dcb31d1b3.jpg" width="260" alt="Music Quick Settings"/></td>
-      <td><img src="https://i.postimeg.cc/cc44d142a49f4df7bfc509f1c54dc71b.jpg" width="260" alt="About Page"/></td>
-      <td><img src="https://i.postimeg.cc/1c3a2027f651467bbe001fb6d1a479e2.jpg" width="260" alt="Settings"/></td>
+      <td><img src="https://i.postimeg.cc/a76f7309a65a4a4889aa7503a982a938.jpg" height="550" alt="Home Screen"/></td>
+      <td><img src="https://i.postimeg.cc/bc9475c4ccbb4935bf3e8f718f8ae0f8.jpg" height="550" alt="Quick Settings"/></td>
+      <td><img src="https://i.postimeg.cc/0a4bc2c38b0e4cc4ab99c9b493a73ef2.jpg" height="550" alt="Video Player"/></td>
+      <td><img src="https://i.postimeg.cc/fa3d430185b348978c6ddd50edaa97c8.jpg" height="550" alt="Player Setting"/></td>
+      <td><img src="https://i.postimeg.cc/3b394f2da2e7425fbbf8c2de2ba0242c.jpg" height="550" alt="Music List"/></td>
+      <td><img src="https://i.postimeg.cc/2141ab4ceaa24c5391c421485d9c759f.jpg" height="550" alt="Music Folders"/></td>
+      <td><img src="https://i.postimeg.cc/ed55e0794a6b408a8ecf158dcb31d1b3.jpg" height="550" alt="Music Settings"/></td>
+      <td><img src="https://i.postimeg.cc/cc44d142a49f4df7bfc509f1c54dc71b.jpg" height="550" alt="About Page"/></td>
+      <td><img src="https://i.postimeg.cc/1c3a2027f651467bbe001fb6d1a479e2.jpg" height="550" alt="Settings"/></td>
     </tr>
   </table>
 </div>
-
-<br>
+<br> 
 
 ## 🌟 Why SHS Player?
 Built on the robust core of Media3 (ExoPlayer), **SHS Player** breaks the limits of standard video players. Whether you are extracting the perfect high-res screenshot for a cinematic poster, heavily relying on hardware decoding for 10-bit HEVC files, or just wanting a clean UI with an integrated Music Player—this is your all-in-one hub.

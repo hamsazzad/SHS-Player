@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://via.placeholder.com/150/121415/FFFFFF?text=SHS+LOGO" alt="SHS Player Logo" width="160" style="border-radius: 20px; box-shadow: 0px 4px 10px rgba(0,0,0,0.5);">
+<img src="https://i.postimeg.cc/7d5ede9bbeff4fecbfcbbaf8534dc6f1.jpg" alt="SHS Player Logo" width="160" style="border-radius: 20px; box-shadow: 0px 4px 10px rgba(0,0,0,0.5);">
 
 # 🎬 SHS Player
 **The Ultimate, Feature-Rich Multimedia Engine for Android.**
@@ -13,7 +13,10 @@
 
 ---
 
-### 🚀 [DOWNLOAD LATEST APK (v0.15.4)](https://github.com/hamsazzad/SHS-Player/releases/tag/v0.15.4) 🚀
+### 👇 Click Below to Download 👇
+<a href="https://github.com/hamsazzad/SHS-Player/releases/tag/v0.15.4">
+  <img src="https://img.shields.io/badge/📥_DOWNLOAD_LATEST_APK-28A745?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" width="300">
+</a>
 
 </div>
 
@@ -25,6 +28,7 @@ Built on the robust core of Media3 (ExoPlayer), **SHS Player** breaks the limits
 <br>
 
 ## 📸 App Screenshots
+*A glimpse into the ultimate media experience.*
 
 <div align="center">
   <table>
@@ -45,6 +49,7 @@ Built on the robust core of Media3 (ExoPlayer), **SHS Player** breaks the limits
     </tr>
   </table>
 </div>
+
 <br>
 
 ## 🔥 The "Creator's Arsenal" (Pro Features)

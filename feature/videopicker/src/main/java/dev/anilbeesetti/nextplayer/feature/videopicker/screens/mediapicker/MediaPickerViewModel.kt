@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.anilbeesetti.nextplayer.core.common.extensions.prettyName
 import dev.anilbeesetti.nextplayer.core.data.repository.PreferencesRepository
 import dev.anilbeesetti.nextplayer.core.database.dao.FavoriteDao
+import dev.anilbeesetti.nextplayer.core.database.entities.FavoriteEntity
 import dev.anilbeesetti.nextplayer.core.domain.GetSortedMediaUseCase
 import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaInfoSynchronizer
@@ -89,6 +90,7 @@ class MediaPickerViewModel @Inject constructor(
             is MediaPickerUiEvent.RenameVideo -> renameVideo(event.uri, event.to)
             is MediaPickerUiEvent.AddToSync -> addToMediaInfoSynchronizer(event.uri)
             is MediaPickerUiEvent.UpdateMenu -> updateMenu(event.preferences)
+            is MediaPickerUiEvent.ToggleFavoriteVideos -> toggleFavoriteVideos(event.videos, event.addToFavorites)
         }
     }
 
@@ -136,6 +138,18 @@ class MediaPickerViewModel @Inject constructor(
             preferencesRepository.updateApplicationPreferences { preferences }
         }
     }
+
+    private fun toggleFavoriteVideos(videos: List<String>, addToFavorites: Boolean) {
+        viewModelScope.launch {
+            videos.forEach { uri ->
+                if (addToFavorites) {
+                    favoriteDao.addFavorite(FavoriteEntity(videoUri = uri))
+                } else {
+                    favoriteDao.removeFavorite(uri)
+                }
+            }
+        }
+    }
 }
 
 @Stable
@@ -155,5 +169,6 @@ sealed interface MediaPickerUiEvent {
     data class RenameVideo(val uri: Uri, val to: String) : MediaPickerUiEvent
     data class AddToSync(val uri: Uri) : MediaPickerUiEvent
     data class UpdateMenu(val preferences: ApplicationPreferences) : MediaPickerUiEvent
+    data class ToggleFavoriteVideos(val videos: List<String>, val addToFavorites: Boolean) : MediaPickerUiEvent
 }
 

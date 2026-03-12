@@ -27,6 +27,8 @@ import androidx.compose.material.icons.rounded.DeveloperBoard
 import androidx.compose.material.icons.rounded.DoneAll
 import androidx.compose.material.icons.rounded.DoubleArrow
 import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.FastForward
 import androidx.compose.material.icons.rounded.FileOpen
 import androidx.compose.material.icons.rounded.FlipToBack
@@ -57,6 +59,7 @@ import androidx.compose.material.icons.rounded.Replay10
 import androidx.compose.material.icons.rounded.ResetTv
 import androidx.compose.material.icons.rounded.ScreenRotationAlt
 import androidx.compose.material.icons.automirrored.rounded.List
+import androidx.compose.material.icons.automirrored.rounded.NavigateNext
 import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.SelectAll
@@ -150,4 +153,7 @@ object NextIcons {
     val Search = Icons.Rounded.Search
     val GridView = Icons.Rounded.GridView
     val List = Icons.AutoMirrored.Rounded.List
+    val ChevronRight = Icons.AutoMirrored.Rounded.NavigateNext
+    val FavouriteFilled = Icons.Rounded.Favorite
+    val FavouriteOutline = Icons.Rounded.FavoriteBorder
 }

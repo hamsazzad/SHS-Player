@@ -605,7 +605,7 @@ fun MusicFilesList(
     onAddToPlaylist: (String, Long) -> Unit,
     onBulkFavoriteAdd: (Set<Long>) -> Unit = {},
     onBulkFavoriteRemove: (Set<Long>) -> Unit = {},
-    onBulkAddToPlaylist: (String, Set<Long>) -> Unit = {},
+    onBulkAddToPlaylist: (String, Set<Long>) -> Unit = { _, _ -> },
 ) {
     if (songs.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -712,7 +712,7 @@ fun MusicFoldersList(
     onAddToPlaylist: (String, Long) -> Unit,
     onBulkFavoriteAdd: (Set<Long>) -> Unit = {},
     onBulkFavoriteRemove: (Set<Long>) -> Unit = {},
-    onBulkAddToPlaylist: (String, Set<Long>) -> Unit = {},
+    onBulkAddToPlaylist: (String, Set<Long>) -> Unit = { _, _ -> },
 ) {
     if (folders.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -822,7 +822,7 @@ fun PlaylistsTab(
     onAddToPlaylist: (String, Long) -> Unit,
     onBulkFavoriteAdd: (Set<Long>) -> Unit = {},
     onBulkFavoriteRemove: (Set<Long>) -> Unit = {},
-    onBulkAddToPlaylist: (String, Set<Long>) -> Unit = {},
+    onBulkAddToPlaylist: (String, Set<Long>) -> Unit = { _, _ -> },
     onPlaylistsChanged: () -> Unit,
 ) {
     var selectedPlaylist by remember { mutableStateOf<String?>(null) }

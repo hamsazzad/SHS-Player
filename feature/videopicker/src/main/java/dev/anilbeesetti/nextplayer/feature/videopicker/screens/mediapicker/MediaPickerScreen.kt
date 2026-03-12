@@ -283,6 +283,14 @@ internal fun MediaPickerScreen(
                 show = selectionManager.isInSelectionMode,
                 showRenameAction = selectionManager.isSingleVideoSelected,
                 showInfoAction = selectionManager.isSingleVideoSelected,
+                selectedFavoriteState = selectionManager.allSelectedVideos.isNotEmpty() &&
+                    selectionManager.allSelectedVideos.all { it.uriString in uiState.favoriteUris },
+                onFavoriteAction = {
+                    val selected = selectionManager.allSelectedVideos.map { it.uriString }
+                    val allFav = selected.all { it in uiState.favoriteUris }
+                    onEvent(MediaPickerUiEvent.ToggleFavoriteVideos(selected, !allFav))
+                    selectionManager.clearSelection()
+                },
                 onPlayAction = {
                     val videoUris = selectionManager.allSelectedVideos.map { it.uriString.toUri() }
                     onPlayVideos(videoUris)
@@ -613,7 +621,9 @@ private fun SelectionActionsSheet(
     show: Boolean,
     showRenameAction: Boolean,
     showInfoAction: Boolean,
+    selectedFavoriteState: Boolean,
     onPlayAction: () -> Unit,
+    onFavoriteAction: () -> Unit,
     onRenameAction: () -> Unit,
     onShareAction: () -> Unit,
     onInfoAction: () -> Unit,
@@ -655,6 +665,11 @@ private fun SelectionActionsSheet(
                     imageVector = NextIcons.Play,
                     title = stringResource(R.string.play),
                     onClick = onPlayAction,
+                )
+                SelectionAction(
+                    imageVector = if (selectedFavoriteState) NextIcons.FavouriteFilled else NextIcons.FavouriteOutline,
+                    title = if (selectedFavoriteState) "Unfavorite" else "Favorite",
+                    onClick = onFavoriteAction,
                 )
                 if (showRenameAction) {
                     SelectionAction(

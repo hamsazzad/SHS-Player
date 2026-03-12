@@ -42,6 +42,14 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.asImageBitmap
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.stringResource
@@ -184,11 +192,80 @@ fun AboutApp(
                 ),
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .weight(1f)
                     .height(52.dp),
             ) {
                 Text(text = stringResource(R.string.libraries))
             }
+        }
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+        val ctx = LocalContext.current
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Button(
+                onClick = {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/aamoviesofficial"))
+                    ctx.startActivity(intent)
+                },
+                colors = ButtonDefaults.buttonColors(
+                    contentColor = androidx.compose.ui.graphics.Color.White,
+                    containerColor = androidx.compose.ui.graphics.Color(0xFF0088CC),
+                ),
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.weight(1f).height(52.dp),
+            ) {
+                Text(text = "Join us on Telegram")
+            }
+            Button(
+                onClick = {
+                    val intent = Intent(Intent.ACTION_SENDTO).apply {
+                        data = Uri.parse("mailto:shsjadinfo@gmail.com")
+                        putExtra(Intent.EXTRA_SUBJECT, "SHS Player - Contact")
+                    }
+                    ctx.startActivity(intent)
+                },
+                colors = ButtonDefaults.buttonColors(
+                    contentColor = androidx.compose.ui.graphics.Color.White,
+                    containerColor = androidx.compose.ui.graphics.Color(0xFF4CAF50),
+                ),
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.weight(1f).height(52.dp),
+            ) {
+                Text(text = "Contact Us")
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .clickable {
+                    val cm = ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    cm.setPrimaryClip(ClipData.newPlainText("bKash", "01310211442"))
+                    android.widget.Toast.makeText(ctx, "bKash number copied!", android.widget.Toast.LENGTH_SHORT).show()
+                },
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(
+                text = "Support Development via bKash",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = "Personal: 01310211442",
+                style = MaterialTheme.typography.bodyMedium,
+                color = androidx.compose.ui.graphics.Color(0xFFE91E8C),
+            )
+            Text(
+                text = "(Tap to copy)",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

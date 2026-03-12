@@ -9,7 +9,7 @@
 [![License](https://img.shields.io/badge/License-GPL%20v3.0-28A745?style=for-the-badge)](#license)
 [![Developer](https://img.shields.io/badge/Developer-SHS%20Shobuj-FF0000?style=for-the-badge&logo=youtube)](#)
 
-> *More than just a video player. It's a fully customized powerhouse designed for seamless playback, professional media editing, and an ad-free cinematic experience.*
+> *More than just a video player. It's a fully customized powerhouse designed for seamless playback, professional media editing, and an ad-free cinematic experience. Say goodbye to "Audio Format Not Supported" errors!*
 
 ---
 
@@ -22,8 +22,16 @@
 
 ---
 
+## 🚀 What's New in v0.15.4 (The "God Level" Update)
+* **🔊 EAC3 / Dolby Audio Supported Out-of-the-Box:** No more "Audio format not supported" errors found in other major players. Enjoy high-quality cinematic sound flawlessly.
+* **⚡ Context-Aware Playback Queue:** The player now intelligently syncs your playback queue based on where you started playing from (Folder, Playlist, Favorites, or All).
+* **☑️ Bulk Selection (Audio & Video):** Effortlessly manage your library by selecting and adding multiple files to Favorites or Playlists in a single tap.
+* **📂 Advanced Folder Navigation:** Re-engineered the music folder view. Clicking a folder now beautifully navigates *into* it for a cleaner, modern browsing experience.
+
+---
+
 ## 🌟 Why SHS Player?
-Built on the robust core of Media3 (ExoPlayer), **SHS Player** breaks the limits of standard video players. Whether you are extracting the perfect high-res screenshot for a cinematic poster, heavily relying on hardware decoding for 10-bit HEVC files, or just wanting a clean UI with an integrated Music Player—this is your all-in-one hub.
+Built on the robust core of Media3 (ExoPlayer), **SHS Player** breaks the limits of standard video players. Whether you are extracting the perfect high-res screenshot for a cinematic poster, heavily relying on hardware decoding for 10-bit HEVC files and EAC3 audio, or just wanting a clean UI with an integrated Music Player—this is your all-in-one hub.
 
 <br>
 
@@ -69,6 +77,7 @@ Built on the robust core of Media3 (ExoPlayer), **SHS Player** breaks the limits
 > Experience media without limits, lags, or ads.
 
 - <kbd>HW/SW Decoder Switch</kbd> Force hardware or software decoding for heavy files.
+- <kbd>EAC3/Dolby Ready</kbd> Direct support for premium audio formats without external plugins.
 - <kbd>Video Equalizer</kbd> Fine-tune Brightness, Contrast, and Saturation on the fly.
 - <kbd>HDR Support</kbd> Hardware-accelerated HDR video playback.
 - <kbd>Voice Changer</kbd> Fun audio effects: *Normal, Deep, Robot, Child, Echo*.
@@ -80,9 +89,10 @@ Built on the robust core of Media3 (ExoPlayer), **SHS Player** breaks the limits
 ## 🎵 Complete Music Engine
 *Unlike the base app, SHS Player features a fully-fledged, integrated Music Player.*
 
+- **Smart Navigation:** Clicking a folder enters a dedicated view instead of just expanding.
+- **Bulk Selection:** Select and add multiple audio files to playlists or favorites instantly.
 - **Categorized Browsing:** Filter by *All Music, Playlists, Albums,* and *Artists*.
 - **Background Playback:** Audio continues seamlessly even when the app is closed.
-- **Custom Playlists:** Create and manage your own audio libraries.
 
 <br>
 
@@ -92,6 +102,7 @@ Built on the robust core of Media3 (ExoPlayer), **SHS Player** breaks the limits
 <summary><b>✨ Click to expand UI & Control features</b></summary>
 
 * **Bottom Navigation Bar:** Instant access to `Videos`, `Music`, and `Telegram` tabs.
+* **Bulk Video Management:** Quickly select multiple videos to mark as favorites.
 * **Video Browser:** Smart folder-based library system displaying exact item counts.
 * **Gesture Controls:** Intuitive swipes for volume, brightness, and precision seeking.
 * **Subtitle Master:** Load external subs (`SRT`, `ASS`, `VTT`, `TTML`) with full font, size, and color customization.
@@ -108,7 +119,7 @@ Be a part of our ecosystem! Get the latest updates, movie drops, and directly co
   
   [![Join Telegram](https://img.shields.io/badge/Join_Our_Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/aamoviesofficial)
   
-  **Developer:** SHS Shobuj  
+  **Developer:** Sajjad Hussain Shobuj  
   *Bringing professional tools to your fingertips.*
 </div>
 

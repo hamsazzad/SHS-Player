@@ -113,6 +113,7 @@ fun MediaPickerRoute(
     onFolderClick: (folderPath: String) -> Unit,
     onSettingsClick: () -> Unit,
     onNavigateUp: () -> Unit,
+    onMoveToPrivacyFolder: ((List<Uri>) -> Unit)? = null,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -124,6 +125,7 @@ fun MediaPickerRoute(
         onFolderClick = onFolderClick,
         onSettingsClick = onSettingsClick,
         onEvent = viewModel::onEvent,
+        onMoveToPrivacyFolder = onMoveToPrivacyFolder,
     )
 }
 
@@ -137,6 +139,7 @@ internal fun MediaPickerScreen(
     onFolderClick: (String) -> Unit = {},
     onSettingsClick: () -> Unit = {},
     onEvent: (MediaPickerUiEvent) -> Unit = {},
+    onMoveToPrivacyFolder: ((List<Uri>) -> Unit)? = null,
 ) {
     val selectionManager = rememberSelectionManager()
     val permissionState = rememberPermissionState(permission = storagePermission)
@@ -318,6 +321,13 @@ internal fun MediaPickerScreen(
                         selectionManager.clearSelection()
                     } else {
                         showDeleteVideosConfirmation = true
+                    }
+                },
+                onMoveToPrivacyFolderAction = onMoveToPrivacyFolder?.let { callback ->
+                    {
+                        val uris = selectionManager.allSelectedVideos.map { it.uriString.toUri() }
+                        callback(uris)
+                        selectionManager.clearSelection()
                     }
                 },
             )
@@ -628,6 +638,7 @@ private fun SelectionActionsSheet(
     onShareAction: () -> Unit,
     onInfoAction: () -> Unit,
     onDeleteAction: () -> Unit,
+    onMoveToPrivacyFolderAction: (() -> Unit)? = null,
 ) {
     AnimatedVisibility(
         modifier = modifier.padding(
@@ -688,6 +699,13 @@ private fun SelectionActionsSheet(
                         imageVector = NextIcons.Info,
                         title = stringResource(id = R.string.info),
                         onClick = onInfoAction,
+                    )
+                }
+                onMoveToPrivacyFolderAction?.let { action ->
+                    SelectionAction(
+                        imageVector = NextIcons.Lock,
+                        title = "Privacy",
+                        onClick = action,
                     )
                 }
                 SelectionAction(

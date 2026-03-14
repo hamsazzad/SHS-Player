@@ -9,6 +9,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -511,6 +513,7 @@ fun BulkActionBar(
     onRemoveFromFavorites: () -> Unit,
     onAddToPlaylist: (String) -> Unit,
     onDelete: () -> Unit = {},
+    onMoveToPrivacyFolder: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     var showDeleteConfirm by remember { mutableStateOf(false) }
@@ -578,6 +581,16 @@ fun BulkActionBar(
                     }
                 }
 
+                // Privacy Folder action
+                Column(horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.clickable(onClick = onMoveToPrivacyFolder).padding(8.dp)) {
+                    Icon(imageVector = NextIcons.Lock,
+                        contentDescription = "Move to Privacy Folder",
+                        tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(24.dp))
+                    Text("Privacy", style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.secondary)
+                }
+
                 // Delete action
                 Column(horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.clickable(onClick = { showDeleteConfirm = true }).padding(8.dp)) {
@@ -621,6 +634,7 @@ fun MusicFilesList(
 
     var selectedIds by remember { mutableStateOf<Set<Long>>(emptySet()) }
     val isSelectionMode = selectedIds.isNotEmpty()
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
 
     BackHandler(enabled = isSelectionMode) { selectedIds = emptySet() }
 
@@ -705,6 +719,15 @@ fun MusicFilesList(
                         }
                     }
                     selectedIds = emptySet()
+                },
+                onMoveToPrivacyFolder = {
+                    val urisToMove = songs.filter { it.id in selectedIds }.map {
+                        android.content.ContentUris.withAppendedId(android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, it.id)
+                    }
+                    selectedIds = emptySet()
+                    scope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                        urisToMove.forEach { uri -> moveToVault(context, uri, "music") }
+                    }
                 },
             )
         }
@@ -1108,6 +1131,7 @@ fun MusicListItem(
     var showInfoDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     val songUri = ContentUris.withAppendedId(android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, song.id)
+    val listItemScope = androidx.compose.runtime.rememberCoroutineScope()
     val bgColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
     else Color.Transparent
 
@@ -1217,6 +1241,15 @@ fun MusicListItem(
                         text = { Text(if (isFavorite) "Remove from Favourites" else "Add to Favourites") },
                         onClick = { showMenu = false; toggleMusicFavorite(context, song.id); onFavoriteToggle() },
                     )
+                    DropdownMenuItem(
+                        text = { Text("Move to Privacy Folder") },
+                        onClick = {
+                            showMenu = false
+                            listItemScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                                moveToVault(context, songUri, "music")
+                            }
+                        },
+                    )
                     if (customPlaylists.isNotEmpty()) {
                         HorizontalDivider()
                         Text("Add to Playlist:", modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
@@ -1317,6 +1350,7 @@ fun MusicGridItem(
     var showInfoDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     val songUri = ContentUris.withAppendedId(android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, song.id)
+    val gridItemScope = androidx.compose.runtime.rememberCoroutineScope()
     val borderMod = if (isSelected) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
     else Modifier
 
@@ -1419,6 +1453,15 @@ fun MusicGridItem(
                     DropdownMenuItem(
                         text = { Text(if (isFavorite) "Remove from Favourites" else "Add to Favourites") },
                         onClick = { showMenu = false; toggleMusicFavorite(context, song.id); onFavoriteToggle() },
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Move to Privacy Folder") },
+                        onClick = {
+                            showMenu = false
+                            gridItemScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                                moveToVault(context, songUri, "music")
+                            }
+                        },
                     )
                     if (customPlaylists.isNotEmpty()) {
                         customPlaylists.forEach { pl ->

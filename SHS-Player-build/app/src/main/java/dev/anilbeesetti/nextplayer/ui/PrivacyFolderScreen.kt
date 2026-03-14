@@ -5,8 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import android.content.ContentUris
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.background
@@ -521,23 +520,42 @@ fun VaultContentScreen(
     var videoFiles by remember { mutableStateOf(getVaultFiles(context, "videos")) }
     var musicFiles by remember { mutableStateOf(getVaultFiles(context, "music")) }
     var showAddMenu by remember { mutableStateOf(false) }
+    var showVideoPicker by remember { mutableStateOf(false) }
+    var showMusicPicker by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
-    val videoPickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
-        uris.forEach { uri ->
-            scope.launch(Dispatchers.IO) {
-                moveToVault(context, uri, "videos")
-                withContext(Dispatchers.Main) { videoFiles = getVaultFiles(context, "videos") }
-            }
-        }
+    if (showVideoPicker) {
+        MediaStorePickerDialog(
+            mediaType = "video",
+            title = "Select Videos",
+            onDismiss = { showVideoPicker = false },
+            onConfirm = { uris ->
+                showVideoPicker = false
+                uris.forEach { uri ->
+                    scope.launch(Dispatchers.IO) {
+                        moveToVault(context, uri, "videos")
+                        withContext(Dispatchers.Main) { videoFiles = getVaultFiles(context, "videos") }
+                    }
+                }
+            },
+        )
     }
-    val musicPickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
-        uris.forEach { uri ->
-            scope.launch(Dispatchers.IO) {
-                moveToVault(context, uri, "music")
-                withContext(Dispatchers.Main) { musicFiles = getVaultFiles(context, "music") }
-            }
-        }
+
+    if (showMusicPicker) {
+        MediaStorePickerDialog(
+            mediaType = "audio",
+            title = "Select Music",
+            onDismiss = { showMusicPicker = false },
+            onConfirm = { uris ->
+                showMusicPicker = false
+                uris.forEach { uri ->
+                    scope.launch(Dispatchers.IO) {
+                        moveToVault(context, uri, "music")
+                        withContext(Dispatchers.Main) { musicFiles = getVaultFiles(context, "music") }
+                    }
+                }
+            },
+        )
     }
 
     Column(modifier = modifier.fillMaxSize()) {
@@ -557,12 +575,12 @@ fun VaultContentScreen(
                         DropdownMenuItem(
                             text = { Text("Add Videos") },
                             leadingIcon = { Icon(NextIcons.Video, contentDescription = null) },
-                            onClick = { showAddMenu = false; videoPickerLauncher.launch("video/*") },
+                            onClick = { showAddMenu = false; showVideoPicker = true },
                         )
                         DropdownMenuItem(
                             text = { Text("Add Music") },
                             leadingIcon = { Icon(NextIcons.Audio, contentDescription = null) },
-                            onClick = { showAddMenu = false; musicPickerLauncher.launch("audio/*") },
+                            onClick = { showAddMenu = false; showMusicPicker = true },
                         )
                     }
                 }
@@ -713,4 +731,126 @@ fun VaultFileItem(
             dismissButton = { TextButton(onClick = { showDeleteConfirm = false }) { Text("Cancel") } },
         )
     }
+}
+
+// ─── Custom MediaStore Picker Dialog ──────────────────────────────────────────
+
+private data class MediaStoreItem(val id: Long, val uri: Uri, val displayName: String, val sizeMb: String)
+
+@Composable
+fun MediaStorePickerDialog(
+    mediaType: String,
+    title: String,
+    onDismiss: () -> Unit,
+    onConfirm: (List<Uri>) -> Unit,
+) {
+    val context = LocalContext.current
+    var mediaItems by remember { mutableStateOf<List<MediaStoreItem>>(emptyList()) }
+    var selectedIds by remember { mutableStateOf<Set<Long>>(emptySet()) }
+    var isLoading by remember { mutableStateOf(true) }
+
+    LaunchedEffect(mediaType) {
+        isLoading = true
+        mediaItems = queryMediaStoreItems(context, mediaType)
+        isLoading = false
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            if (isLoading) {
+                Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            } else if (mediaItems.isEmpty()) {
+                Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+                    Text("No ${if (mediaType == "video") "videos" else "music"} found on device.")
+                }
+            } else {
+                Column {
+                    Text(
+                        "${selectedIds.size} of ${mediaItems.size} selected",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 4.dp),
+                    )
+                    LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 400.dp)) {
+                        items(mediaItems, key = { it.id }) { item ->
+                            val isSelected = item.id in selectedIds
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        selectedIds = if (isSelected) selectedIds - item.id else selectedIds + item.id
+                                    }
+                                    .padding(vertical = 6.dp, horizontal = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Checkbox(
+                                    checked = isSelected,
+                                    onCheckedChange = { checked ->
+                                        selectedIds = if (checked) selectedIds + item.id else selectedIds - item.id
+                                    },
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        item.displayName,
+                                        maxLines = 1,
+                                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                    )
+                                    Text(
+                                        item.sizeMb,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            }
+                            HorizontalDivider()
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    val uris = mediaItems.filter { it.id in selectedIds }.map { it.uri }
+                    onConfirm(uris)
+                },
+                enabled = selectedIds.isNotEmpty(),
+            ) { Text("Add (${selectedIds.size})") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+    )
+}
+
+private fun queryMediaStoreItems(context: Context, mediaType: String): List<MediaStoreItem> {
+    val collection = when (mediaType) {
+        "video" -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+        else -> MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+    }
+    val projection = arrayOf(
+        MediaStore.MediaColumns._ID,
+        MediaStore.MediaColumns.DISPLAY_NAME,
+        MediaStore.MediaColumns.SIZE,
+    )
+    val sortOrder = "${MediaStore.MediaColumns.DATE_ADDED} DESC"
+    val result = mutableListOf<MediaStoreItem>()
+    context.contentResolver.query(collection, projection, null, null, sortOrder)?.use { cursor ->
+        val idCol = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
+        val nameCol = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME)
+        val sizeCol = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.SIZE)
+        while (cursor.moveToNext()) {
+            val id = cursor.getLong(idCol)
+            val name = cursor.getString(nameCol) ?: "Unknown"
+            val size = cursor.getLong(sizeCol)
+            val uri = ContentUris.withAppendedId(collection, id)
+            val sizeMb = if (size > 0) "%.1f MB".format(size / 1_048_576.0) else ""
+            result.add(MediaStoreItem(id, uri, name, sizeMb))
+        }
+    }
+    return result
 }

@@ -300,6 +300,16 @@ fun SendView(context: Context) {
         selectedFiles = (selectedFiles + newItems).distinctBy { it.uri }
     }
 
+    if (showQrScanner) {
+        QrScannerDialog(
+            onResult = { scannedUrl ->
+                targetUrl = scannedUrl
+                showQrScanner = false
+            },
+            onDismiss = { showQrScanner = false },
+        )
+    }
+
     if (showPermDialog) {
         AlertDialog(
             onDismissRequest = { showPermDialog = false },
@@ -392,11 +402,7 @@ fun SendView(context: Context) {
             trailingIcon = {
                 IconButton(onClick = {
                     if (permissionsState.allPermissionsGranted) {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("zxing://scan/"))
-                        intent.setPackage("com.google.zxing.client.android")
-                        val scanIntent = Intent("com.google.zxing.client.android.SCAN")
-                        scanIntent.putExtra("SCAN_MODE", "QR_CODE_MODE")
-                        runCatching { (context as? android.app.Activity)?.startActivityForResult(scanIntent, 0) }
+                        showQrScanner = true
                     } else {
                         showPermDialog = true
                     }

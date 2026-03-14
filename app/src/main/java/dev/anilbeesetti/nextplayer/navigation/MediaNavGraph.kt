@@ -11,6 +11,10 @@ import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.MediaPickerRou
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.mediaPickerScreen
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.navigateToMediaPickerScreen
 import dev.anilbeesetti.nextplayer.settings.navigation.navigateToSettings
+import dev.anilbeesetti.nextplayer.ui.moveToVault
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -40,6 +44,11 @@ fun NavGraphBuilder.mediaNavGraph(
             },
             onFolderClick = navController::navigateToMediaPickerScreen,
             onSettingsClick = navController::navigateToSettings,
+            onMoveToPrivacyFolder = { uris ->
+                CoroutineScope(Dispatchers.IO).launch {
+                    uris.forEach { uri -> moveToVault(context, uri, "videos") }
+                }
+            },
         )
     }
 }

@@ -9,6 +9,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -510,10 +512,26 @@ fun BulkActionBar(
     onAddToFavorites: () -> Unit,
     onRemoveFromFavorites: () -> Unit,
     onAddToPlaylist: (String) -> Unit,
+    onDelete: () -> Unit = {},
+    onMoveToPrivacyFolder: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
-    var showPlaylistMenu by remember { mutableStateOf(false) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
     val allSelectedAreFav = selectedIds.isNotEmpty() && selectedIds.all { it in favoriteIds }
+
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text("Delete Songs") },
+            text = { Text("Delete $selectedCount selected song(s)? This cannot be undone.") },
+            confirmButton = {
+                TextButton(onClick = { showDeleteConfirm = false; onDelete() }) {
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = { TextButton(onClick = { showDeleteConfirm = false }) { Text("Cancel") } },
+        )
+    }
 
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -563,26 +581,24 @@ fun BulkActionBar(
                     }
                 }
 
-                // Add to Playlist action
-                if (customPlaylists.isNotEmpty()) {
-                    Box {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.clickable { showPlaylistMenu = true }.padding(8.dp)) {
-                            Icon(painter = painterResource(coreUiR.drawable.ic_playlist),
-                                contentDescription = "Add to Playlist",
-                                tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
-                            Text("Playlist", style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary)
-                        }
-                        DropdownMenu(expanded = showPlaylistMenu, onDismissRequest = { showPlaylistMenu = false }) {
-                            customPlaylists.forEach { pl ->
-                                DropdownMenuItem(
-                                    text = { Text(pl) },
-                                    onClick = { showPlaylistMenu = false; onAddToPlaylist(pl) }
-                                )
-                            }
-                        }
-                    }
+                // Privacy Folder action
+                Column(horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.clickable(onClick = onMoveToPrivacyFolder).padding(8.dp)) {
+                    Icon(imageVector = NextIcons.Lock,
+                        contentDescription = "Move to Privacy Folder",
+                        tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(24.dp))
+                    Text("Privacy", style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.secondary)
+                }
+
+                // Delete action
+                Column(horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.clickable(onClick = { showDeleteConfirm = true }).padding(8.dp)) {
+                    Icon(imageVector = NextIcons.Delete,
+                        contentDescription = "Delete selected",
+                        tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(24.dp))
+                    Text("Delete", style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.error)
                 }
             }
         }
@@ -618,6 +634,7 @@ fun MusicFilesList(
 
     var selectedIds by remember { mutableStateOf<Set<Long>>(emptySet()) }
     val isSelectionMode = selectedIds.isNotEmpty()
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
 
     BackHandler(enabled = isSelectionMode) { selectedIds = emptySet() }
 
@@ -693,6 +710,25 @@ fun MusicFilesList(
                 onAddToFavorites = { onBulkFavoriteAdd(selectedIds); selectedIds = emptySet() },
                 onRemoveFromFavorites = { onBulkFavoriteRemove(selectedIds); selectedIds = emptySet() },
                 onAddToPlaylist = { pl -> onBulkAddToPlaylist(pl, selectedIds); selectedIds = emptySet() },
+                onDelete = {
+                    val toDelete = songs.filter { it.id in selectedIds }
+                    toDelete.forEach { s ->
+                        runCatching {
+                            val uri = android.content.ContentUris.withAppendedId(android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, s.id)
+                            context.contentResolver.delete(uri, null, null)
+                        }
+                    }
+                    selectedIds = emptySet()
+                },
+                onMoveToPrivacyFolder = {
+                    val urisToMove = songs.filter { it.id in selectedIds }.map {
+                        android.content.ContentUris.withAppendedId(android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, it.id)
+                    }
+                    selectedIds = emptySet()
+                    scope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                        urisToMove.forEach { uri -> moveToVault(context, uri, "music") }
+                    }
+                },
             )
         }
     }
@@ -1095,6 +1131,7 @@ fun MusicListItem(
     var showInfoDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     val songUri = ContentUris.withAppendedId(android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, song.id)
+    val listItemScope = androidx.compose.runtime.rememberCoroutineScope()
     val bgColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
     else Color.Transparent
 
@@ -1175,6 +1212,10 @@ fun MusicListItem(
             }
             Box {
                 DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
+                    DropdownMenuItem(text = { Text("Select") }, onClick = {
+                        showMenu = false; onLongPress()
+                    })
+                    HorizontalDivider()
                     DropdownMenuItem(text = { Text("Play") }, onClick = {
                         showMenu = false; playAudio(context, song, queue.ifEmpty { listOf(song) })
                     })
@@ -1199,6 +1240,15 @@ fun MusicListItem(
                     DropdownMenuItem(
                         text = { Text(if (isFavorite) "Remove from Favourites" else "Add to Favourites") },
                         onClick = { showMenu = false; toggleMusicFavorite(context, song.id); onFavoriteToggle() },
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Move to Privacy Folder") },
+                        onClick = {
+                            showMenu = false
+                            listItemScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                                moveToVault(context, songUri, "music")
+                            }
+                        },
                     )
                     if (customPlaylists.isNotEmpty()) {
                         HorizontalDivider()
@@ -1300,6 +1350,7 @@ fun MusicGridItem(
     var showInfoDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     val songUri = ContentUris.withAppendedId(android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, song.id)
+    val gridItemScope = androidx.compose.runtime.rememberCoroutineScope()
     val borderMod = if (isSelected) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
     else Modifier
 
@@ -1374,6 +1425,10 @@ fun MusicGridItem(
         if (!isSelectionMode) {
             Box {
                 DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
+                    DropdownMenuItem(text = { Text("Select") }, onClick = {
+                        showMenu = false; onLongPress()
+                    })
+                    HorizontalDivider()
                     DropdownMenuItem(text = { Text("Play") }, onClick = {
                         showMenu = false; playAudio(context, song, queue.ifEmpty { listOf(song) })
                     })
@@ -1398,6 +1453,15 @@ fun MusicGridItem(
                     DropdownMenuItem(
                         text = { Text(if (isFavorite) "Remove from Favourites" else "Add to Favourites") },
                         onClick = { showMenu = false; toggleMusicFavorite(context, song.id); onFavoriteToggle() },
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Move to Privacy Folder") },
+                        onClick = {
+                            showMenu = false
+                            gridItemScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                                moveToVault(context, songUri, "music")
+                            }
+                        },
                     )
                     if (customPlaylists.isNotEmpty()) {
                         customPlaylists.forEach { pl ->

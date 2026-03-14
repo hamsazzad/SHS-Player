@@ -1,0 +1,7 @@
+#Sat Mar 14 22:09:01 GMT 2026
+base.1=/home/runner/workspace/SHS-Tube/app/build/intermediates/dex/standardDebug/mergeProjectDexStandardDebug/14/classes.dex
+path.1=14/classes.dex
+base.0=/home/runner/workspace/SHS-Tube/app/build/intermediates/dex/standardDebug/mergeProjectDexStandardDebug/0/classes.dex
+renamed.1=classes2.dex
+renamed.0=classes.dex
+path.0=0/classes.dex

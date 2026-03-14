@@ -1,0 +1,9 @@
+com.shsai.tube.app-clone-0 /home/runner/workspace/SHS-Tube/app/build/generated/res/pngs/clone/debug
+com.shsai.tube.app-clone-1 /home/runner/workspace/SHS-Tube/app/build/generated/res/resValues/clone/debug
+com.shsai.tube.app-packageCloneDebugResources-2 /home/runner/workspace/SHS-Tube/app/build/intermediates/incremental/cloneDebug/packageCloneDebugResources/merged.dir
+com.shsai.tube.app-packageCloneDebugResources-3 /home/runner/workspace/SHS-Tube/app/build/intermediates/incremental/cloneDebug/packageCloneDebugResources/stripped.dir
+com.shsai.tube.app-cloneDebug-4 /home/runner/workspace/SHS-Tube/app/build/intermediates/merged_res/cloneDebug/mergeCloneDebugResources
+com.shsai.tube.app-clone-5 /home/runner/workspace/SHS-Tube/app/src/clone/res
+com.shsai.tube.app-cloneDebug-6 /home/runner/workspace/SHS-Tube/app/src/cloneDebug/res
+com.shsai.tube.app-debug-7 /home/runner/workspace/SHS-Tube/app/src/debug/res
+com.shsai.tube.app-main-8 /home/runner/workspace/SHS-Tube/app/src/main/res

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#DD000000</color>
+    <color name="colorAccent">#000000</color>
+    <color name="colorControlHighlight">#000000</color>
+    <color name="colorControlNormal">#000000</color>
+    <color name="colorPrimary">#000000</color>
+    <color name="colorPrimaryDark">#000000</color>
+    <color name="white">#FFFFFF</color>
+    <string name="about_text">SHS Tube\nDeveloper: SHS\nTelegram: t.me/aamoviesofficial</string>
+    <string name="app_name" translatable="false">SHS Tube</string>
+    <string name="app_name_clone" translatable="false">SHS Tube Clone</string>
+    <string name="developer">Developer: SHS</string>
+    <string name="dl">Download</string>
+    <string name="dl_started">Download started</string>
+    <string name="grant_mic">Please Grant Microphone Permission in order to use Speech Recognition</string>
+    <string name="grant_storage">Please Grant Storage Permission in order to download files</string>
+    <string name="no_pip">Unfortunately, PIP is not supported on your Android version</string>
+    <string name="telegram_url">https://t.me/aamoviesofficial</string>
+    <style name="AppTheme" parent="@android:style/Theme.Material.NoActionBar">
+		<item name="android:colorPrimary">@color/colorPrimary</item>
+		<item name="android:colorPrimaryDark">@color/colorPrimaryDark</item>
+		<item name="android:colorAccent">@color/colorAccent</item>
+		<item name="android:colorControlHighlight">@color/colorControlHighlight</item>
+		<item name="android:colorControlNormal">@color/colorControlNormal</item>
+		<item name="android:statusBarColor">@color/colorPrimary</item>
+                <item name="android:windowTranslucentStatus">false</item>
+		<item name="android:windowLightStatusBar">false</item>
+	</style>
+    <style name="NoStatusBar" parent="AppTheme">
+		<item name="android:windowFullscreen">true</item>
+	</style>
+</resources>

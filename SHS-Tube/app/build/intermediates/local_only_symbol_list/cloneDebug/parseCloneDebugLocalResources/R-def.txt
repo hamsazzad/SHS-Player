@@ -1,0 +1,31 @@
+R_DEF: Internal format may change without notice
+local
+color black
+color colorAccent
+color colorControlHighlight
+color colorControlNormal
+color colorPrimary
+color colorPrimaryDark
+color white
+drawable foreground
+drawable ic_pause_white
+drawable ic_play_arrow_white
+drawable ic_skip_next_white
+drawable ic_skip_previous_white
+drawable monochrome
+drawable notification
+id web
+layout main
+mipmap app_icon
+string about_text
+string app_name
+string app_name_clone
+string developer
+string dl
+string dl_started
+string grant_mic
+string grant_storage
+string no_pip
+string telegram_url
+style AppTheme
+style NoStatusBar

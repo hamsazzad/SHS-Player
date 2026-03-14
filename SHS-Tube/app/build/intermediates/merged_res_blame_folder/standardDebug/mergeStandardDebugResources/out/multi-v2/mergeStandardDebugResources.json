@@ -1,0 +1,79 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.shsai.tube.app-standardDebug-4:/values_values.arsc.flat",
+            "map": [
+                {
+                    "source": "/home/runner/workspace/SHS-Tube/app/src/main/res/values/colors.xml",
+                    "from": {
+                        "startLines": "6,3,4,5,1,2,7",
+                        "startColumns": "1,1,1,1,1,1,4",
+                        "startOffsets": "257,108,152,206,14,59,300",
+                        "endColumns": "38,42,52,49,43,47,39",
+                        "endOffsets": "294,149,203,254,56,105,335"
+                    },
+                    "to": {
+                        "startLines": "2,3,4,5,6,7,8",
+                        "startColumns": "4,4,4,4,4,4,4",
+                        "startOffsets": "55,97,143,199,252,299,350",
+                        "endColumns": "41,45,55,52,46,50,39",
+                        "endOffsets": "92,138,194,247,294,345,385"
+                    }
+                },
+                {
+                    "source": "/home/runner/workspace/SHS-Tube/app/src/main/res/values/strings.xml",
+                    "from": {
+                        "startLines": "10,2,8,7,6,3,4,5,9",
+                        "startColumns": "4,4,4,4,4,4,4,4,4",
+                        "startOffsets": "686,83,562,522,466,162,270,371,615",
+                        "endColumns": "96,78,52,39,55,107,100,94,70",
+                        "endOffsets": "778,157,610,557,517,265,366,461,681"
+                    },
+                    "to": {
+                        "startLines": "9,11,12,13,14,15,16,17,18",
+                        "startColumns": "4,4,4,4,4,4,4,4,4",
+                        "startOffsets": "390,554,633,686,726,782,890,991,1086",
+                        "endColumns": "96,78,52,39,55,107,100,94,70",
+                        "endOffsets": "482,628,681,721,777,885,986,1081,1152"
+                    }
+                },
+                {
+                    "source": "/home/runner/workspace/SHS-Tube/app/build/generated/res/resValues/standard/debug/values/gradleResValues.xml",
+                    "from": {
+                        "startLines": "6",
+                        "startColumns": "4",
+                        "startOffsets": "163",
+                        "endColumns": "66",
+                        "endOffsets": "225"
+                    },
+                    "to": {
+                        "startLines": "10",
+                        "startColumns": "4",
+                        "startOffsets": "487",
+                        "endColumns": "66",
+                        "endOffsets": "549"
+                    }
+                },
+                {
+                    "source": "/home/runner/workspace/SHS-Tube/app/src/main/res/values/styles.xml",
+                    "from": {
+                        "startLines": "1,11",
+                        "startColumns": "9,1",
+                        "startOffsets": "22,665",
+                        "endLines": "10,13",
+                        "endColumns": "9,9",
+                        "endOffsets": "662,773"
+                    },
+                    "to": {
+                        "startLines": "19,29",
+                        "startColumns": "4,4",
+                        "startOffsets": "1157,1793",
+                        "endLines": "28,31",
+                        "endColumns": "9,9",
+                        "endOffsets": "1788,1899"
+                    }
+                }
+            ]
+        }
+    ]
+}

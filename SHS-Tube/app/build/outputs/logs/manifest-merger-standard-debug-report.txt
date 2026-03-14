@@ -1,0 +1,158 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:1:1-79:12
+INJECTED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:1:1-79:12
+INJECTED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:1:1-79:12
+INJECTED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:1:1-79:12
+	package
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:3:9-33
+		INJECTED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml
+	android:versionName
+		INJECTED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml
+	android:versionCode
+		INJECTED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml
+	xmlns:android
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:2:9-67
+uses-permission#android.permission.INTERNET
+ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:4:9-70
+	android:name
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:4:26-68
+uses-permission#android.permission.POST_NOTIFICATIONS
+ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:5:9-81
+	android:name
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:5:26-78
+uses-permission#android.permission.RECORD_AUDIO
+ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:6:9-75
+	android:name
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:6:26-72
+uses-permission#android.permission.MODIFY_AUDIO_SETTINGS
+ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:7:9-84
+	android:name
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:7:26-81
+uses-permission#android.permission.WRITE_EXTERNAL_STORAGE
+ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:8:9-85
+	android:name
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:8:26-82
+uses-permission#android.permission.FOREGROUND_SERVICE
+ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:9:9-81
+	android:name
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:9:26-78
+uses-permission#android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK
+ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:10:9-96
+	android:name
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:10:26-93
+application
+ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:11:9-78:23
+INJECTED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:11:9-78:23
+	android:extractNativeLibs
+		INJECTED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml
+	android:label
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:13:17-49
+	android:roundIcon
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:15:17-53
+	android:largeHeap
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:16:17-41
+	android:icon
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:14:17-48
+	android:allowBackup
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:12:17-43
+	android:theme
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:18:17-48
+	android:usesCleartextTraffic
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:17:17-52
+activity#com.shsai.tube.MainActivity
+ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:19:17-46:28
+	android:screenOrientation
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:26:25-64
+	android:hardwareAccelerated
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:22:25-59
+	android:exported
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:25:25-48
+	android:supportsPictureInPicture
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:23:25-64
+	android:configChanges
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:21:25-118
+	android:theme
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:24:25-56
+	android:name
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:20:25-53
+intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
+ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:27:25-30:41
+action#android.intent.action.MAIN
+ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:28:33-84
+	android:name
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:28:41-82
+category#android.intent.category.LAUNCHER
+ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:29:33-92
+	android:name
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:29:43-90
+intent-filter#action:name:android.intent.action.VIEW+category:name:android.intent.category.BROWSABLE+category:name:android.intent.category.DEFAULT+data:host:*.youtube.com+data:host:youtu.be+data:host:youtube.com+data:scheme:http+data:scheme:https
+ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:31:25-40:41
+	android:label
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:55:40-66
+action#android.intent.action.VIEW
+ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:32:33-85
+	android:name
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:32:41-82
+category#android.intent.category.DEFAULT
+ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:33:33-92
+	android:name
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:33:43-89
+category#android.intent.category.BROWSABLE
+ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:34:33-94
+	android:name
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:34:43-91
+data
+ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:35:33-63
+	android:host
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:37:39-65
+	android:scheme
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:35:39-60
+	android:mimeType
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:44:39-68
+intent-filter#action:name:android.intent.action.SEND+category:name:android.intent.category.DEFAULT+data:mimeType:text/plain
+ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:41:25-45:41
+	android:label
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:65:40-66
+action#android.intent.action.SEND
+ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:42:33-85
+	android:name
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:42:41-82
+activity#com.shsai.tube.DownloadFromIntentFilter
+ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:47:17-70:28
+	android:screenOrientation
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:54:25-64
+	android:hardwareAccelerated
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:50:25-59
+	android:exported
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:53:25-48
+	android:supportsPictureInPicture
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:51:25-64
+	android:configChanges
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:49:25-118
+	android:theme
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:52:25-56
+	android:name
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:48:25-65
+service#com.shsai.tube.ForegroundService
+ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:71:17-76:27
+	android:enabled
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:73:25-47
+	android:exported
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:74:25-48
+	android:foregroundServiceType
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:75:25-70
+	android:name
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:72:25-58
+receiver#com.shsai.tube.NotificationActionService
+ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:77:17-70
+	android:name
+		ADDED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:77:27-68
+uses-sdk
+INJECTED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml
+INJECTED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from /home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml

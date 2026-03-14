@@ -1,0 +1,9 @@
+com.shsai.tube.app-standard-0 /home/runner/workspace/SHS-Tube/app/build/generated/res/pngs/standard/debug
+com.shsai.tube.app-standard-1 /home/runner/workspace/SHS-Tube/app/build/generated/res/resValues/standard/debug
+com.shsai.tube.app-packageStandardDebugResources-2 /home/runner/workspace/SHS-Tube/app/build/intermediates/incremental/standardDebug/packageStandardDebugResources/merged.dir
+com.shsai.tube.app-packageStandardDebugResources-3 /home/runner/workspace/SHS-Tube/app/build/intermediates/incremental/standardDebug/packageStandardDebugResources/stripped.dir
+com.shsai.tube.app-standardDebug-4 /home/runner/workspace/SHS-Tube/app/build/intermediates/merged_res/standardDebug/mergeStandardDebugResources
+com.shsai.tube.app-debug-5 /home/runner/workspace/SHS-Tube/app/src/debug/res
+com.shsai.tube.app-main-6 /home/runner/workspace/SHS-Tube/app/src/main/res
+com.shsai.tube.app-standard-7 /home/runner/workspace/SHS-Tube/app/src/standard/res
+com.shsai.tube.app-standardDebug-8 /home/runner/workspace/SHS-Tube/app/src/standardDebug/res

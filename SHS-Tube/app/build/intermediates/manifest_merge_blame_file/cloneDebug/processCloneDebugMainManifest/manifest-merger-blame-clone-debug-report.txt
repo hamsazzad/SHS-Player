@@ -1,0 +1,200 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.shsai.tube.clone"
+4    android:versionCode="1"
+5    android:versionName="1.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="21"
+9        android:targetSdkVersion="35" />
+10
+11    <uses-permission android:name="android.permission.INTERNET" />
+11-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:4:9-70
+11-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:4:26-68
+12    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+12-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:5:9-81
+12-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:5:26-78
+13    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+13-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:6:9-75
+13-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:6:26-72
+14    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+14-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:7:9-84
+14-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:7:26-81
+15    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+15-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:8:9-85
+15-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:8:26-82
+16    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+16-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:9:9-81
+16-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:9:26-78
+17    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+17-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:10:9-96
+17-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:10:26-93
+18
+19    <application
+19-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:11:9-78:23
+20        android:allowBackup="true"
+20-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:12:17-43
+21        android:debuggable="true"
+22        android:extractNativeLibs="true"
+23        android:icon="@mipmap/app_icon"
+23-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:14:17-48
+24        android:label="@string/app_name"
+24-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:13:17-49
+25        android:largeHeap="true"
+25-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:16:17-41
+26        android:roundIcon="@mipmap/app_icon"
+26-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:15:17-53
+27        android:theme="@style/AppTheme"
+27-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:18:17-48
+28        android:usesCleartextTraffic="true" >
+28-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:17:17-52
+29        <activity
+29-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:19:17-46:28
+30            android:name="com.shsai.tube.MainActivity"
+30-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:20:25-53
+31            android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout"
+31-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:21:25-118
+32            android:exported="true"
+32-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:25:25-48
+33            android:hardwareAccelerated="true"
+33-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:22:25-59
+34            android:screenOrientation="unspecified"
+34-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:26:25-64
+35            android:supportsPictureInPicture="true"
+35-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:23:25-64
+36            android:theme="@style/AppTheme" >
+36-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:24:25-56
+37            <intent-filter>
+37-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:27:25-30:41
+38                <action android:name="android.intent.action.MAIN" />
+38-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:28:33-84
+38-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:28:41-82
+39
+40                <category android:name="android.intent.category.LAUNCHER" />
+40-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:29:33-92
+40-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:29:43-90
+41            </intent-filter>
+42            <intent-filter>
+42-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:31:25-40:41
+43                <action android:name="android.intent.action.VIEW" />
+43-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:32:33-85
+43-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:32:41-82
+44
+45                <category android:name="android.intent.category.DEFAULT" />
+45-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:33:33-92
+45-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:33:43-89
+46                <category android:name="android.intent.category.BROWSABLE" />
+46-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:34:33-94
+46-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:34:43-91
+47
+48                <data android:scheme="http" />
+48-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:35:33-63
+48-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:35:39-60
+49                <data android:scheme="https" />
+49-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:35:33-63
+49-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:35:39-60
+50                <data android:host="youtube.com" />
+50-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:35:33-63
+50-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:37:39-65
+51                <data android:host="*.youtube.com" />
+51-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:35:33-63
+51-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:37:39-65
+52                <data android:host="youtu.be" />
+52-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:35:33-63
+52-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:37:39-65
+53            </intent-filter>
+54            <intent-filter>
+54-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:41:25-45:41
+55                <action android:name="android.intent.action.SEND" />
+55-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:42:33-85
+55-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:42:41-82
+56
+57                <category android:name="android.intent.category.DEFAULT" />
+57-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:33:33-92
+57-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:33:43-89
+58
+59                <data android:mimeType="text/plain" />
+59-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:35:33-63
+59-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:44:39-68
+60            </intent-filter>
+61        </activity>
+62        <activity
+62-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:47:17-70:28
+63            android:name="com.shsai.tube.DownloadFromIntentFilter"
+63-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:48:25-65
+64            android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout"
+64-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:49:25-118
+65            android:exported="true"
+65-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:53:25-48
+66            android:hardwareAccelerated="true"
+66-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:50:25-59
+67            android:screenOrientation="unspecified"
+67-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:54:25-64
+68            android:supportsPictureInPicture="true"
+68-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:51:25-64
+69            android:theme="@style/AppTheme" >
+69-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:52:25-56
+70            <intent-filter android:label="@string/dl" >
+70-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:31:25-40:41
+70-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:55:40-66
+71                <action android:name="android.intent.action.VIEW" />
+71-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:32:33-85
+71-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:32:41-82
+72
+73                <category android:name="android.intent.category.DEFAULT" />
+73-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:33:33-92
+73-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:33:43-89
+74                <category android:name="android.intent.category.BROWSABLE" />
+74-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:34:33-94
+74-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:34:43-91
+75
+76                <data android:scheme="http" />
+76-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:35:33-63
+76-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:35:39-60
+77                <data android:scheme="https" />
+77-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:35:33-63
+77-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:35:39-60
+78                <data android:host="youtube.com" />
+78-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:35:33-63
+78-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:37:39-65
+79                <data android:host="*.youtube.com" />
+79-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:35:33-63
+79-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:37:39-65
+80                <data android:host="youtu.be" />
+80-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:35:33-63
+80-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:37:39-65
+81            </intent-filter>
+82            <intent-filter android:label="@string/dl" >
+82-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:41:25-45:41
+82-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:65:40-66
+83                <action android:name="android.intent.action.SEND" />
+83-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:42:33-85
+83-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:42:41-82
+84
+85                <category android:name="android.intent.category.DEFAULT" />
+85-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:33:33-92
+85-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:33:43-89
+86
+87                <data android:mimeType="text/plain" />
+87-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:35:33-63
+87-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:44:39-68
+88            </intent-filter>
+89        </activity>
+90
+91        <service
+91-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:71:17-76:27
+92            android:name="com.shsai.tube.ForegroundService"
+92-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:72:25-58
+93            android:enabled="true"
+93-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:73:25-47
+94            android:exported="true"
+94-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:74:25-48
+95            android:foregroundServiceType="mediaPlayback" />
+95-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:75:25-70
+96
+97        <receiver android:name="com.shsai.tube.NotificationActionService" />
+97-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:77:17-70
+97-->/home/runner/workspace/SHS-Tube/app/src/main/AndroidManifest.xml:77:27-68
+98    </application>
+99
+100</manifest>

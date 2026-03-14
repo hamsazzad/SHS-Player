@@ -323,6 +323,7 @@
     <string name="software_decoder">Software</string>
     <string name="playlist">Playlist</string>
     <string name="now_playing">Now Playing</string>
+    <string name="me">Me</string>
     <string name="music">Music</string>
     <string name="all_music">All Music</string>
     <string name="album">Album</string>

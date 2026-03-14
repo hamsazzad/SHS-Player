@@ -12,6 +12,7 @@ package dev.anilbeesetti.nextplayer.ui
   enum class BottomNavTab(val iconRes: Int, val labelRes: Int) {
       VIDEOS(coreUiR.drawable.ic_video, coreUiR.string.video),
       MUSIC(coreUiR.drawable.ic_music_note, coreUiR.string.music),
+      ME(coreUiR.drawable.ic_person, coreUiR.string.me),
       TELEGRAM(coreUiR.drawable.ic_info, coreUiR.string.about_name),
   }
 

@@ -78,6 +78,20 @@ import androidx.compose.material.icons.rounded.TouchApp
 import androidx.compose.material.icons.rounded.Translate
 import androidx.compose.material.icons.rounded.Update
 
+import androidx.compose.material.icons.rounded.AccountCircle
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.LockOpen
+import androidx.compose.material.icons.rounded.Wifi
+import androidx.compose.material.icons.rounded.QrCode
+import androidx.compose.material.icons.rounded.QrCodeScanner
+import androidx.compose.material.icons.automirrored.rounded.Send
+import androidx.compose.material.icons.rounded.Download
+import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Payment
+import androidx.compose.material.icons.rounded.CloudUpload
+import androidx.compose.material.icons.rounded.FolderZip
+
 object NextIcons {
     val Appearance = Icons.Rounded.Palette
     val ArrowBack = Icons.AutoMirrored.Rounded.ArrowBack
@@ -156,4 +170,17 @@ object NextIcons {
     val ChevronRight = Icons.AutoMirrored.Rounded.NavigateNext
     val FavouriteFilled = Icons.Rounded.Favorite
     val FavouriteOutline = Icons.Rounded.FavoriteBorder
+    val Person = Icons.Rounded.Person
+    val AccountCircle = Icons.Rounded.AccountCircle
+    val Lock = Icons.Rounded.Lock
+    val LockOpen = Icons.Rounded.LockOpen
+    val Wifi = Icons.Rounded.Wifi
+    val QrCode = Icons.Rounded.QrCode
+    val QrCodeScanner = Icons.Rounded.QrCodeScanner
+    val SendFile = Icons.AutoMirrored.Rounded.Send
+    val ReceiveFile = Icons.Rounded.Download
+    val MoreVert = Icons.Rounded.MoreVert
+    val Payment = Icons.Rounded.Payment
+    val Upload = Icons.Rounded.CloudUpload
+    val FolderZip = Icons.Rounded.FolderZip
 }

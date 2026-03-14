@@ -34,6 +34,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import dagger.hilt.android.AndroidEntryPoint
+import androidx.activity.compose.BackHandler
 import dev.anilbeesetti.nextplayer.core.common.storagePermission
 import dev.anilbeesetti.nextplayer.core.media.services.MediaService
 import dev.anilbeesetti.nextplayer.core.media.sync.MediaSynchronizer
@@ -41,10 +42,15 @@ import dev.anilbeesetti.nextplayer.core.model.ThemeConfig
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.navigation.MediaRootRoute
 import dev.anilbeesetti.nextplayer.navigation.mediaNavGraph
+import dev.anilbeesetti.nextplayer.navigation.SETTINGS_ROUTE
 import dev.anilbeesetti.nextplayer.navigation.settingsNavGraph
 import dev.anilbeesetti.nextplayer.ui.BottomNavBar
 import dev.anilbeesetti.nextplayer.ui.BottomNavTab
+import dev.anilbeesetti.nextplayer.ui.FileTransferScreen
+import dev.anilbeesetti.nextplayer.ui.MeDestination
+import dev.anilbeesetti.nextplayer.ui.MeScreen
 import dev.anilbeesetti.nextplayer.ui.MusicScreen
+import dev.anilbeesetti.nextplayer.ui.PrivacyFolderScreen
 import dev.anilbeesetti.nextplayer.ui.TelegramScreen
 import javax.inject.Inject
 import kotlinx.coroutines.launch
@@ -118,12 +124,16 @@ class MainActivity : ComponentActivity() {
                 }
 
                 var currentTab by remember { mutableStateOf(BottomNavTab.VIDEOS) }
+                var meSubScreen by remember { mutableStateOf<MeSubScreen>(MeSubScreen.Main) }
 
                 Scaffold(
                     bottomBar = {
                         BottomNavBar(
                             currentTab = currentTab,
-                            onTabSelected = { currentTab = it },
+                            onTabSelected = { newTab ->
+                                currentTab = newTab
+                                if (newTab != BottomNavTab.ME) meSubScreen = MeSubScreen.Main
+                            },
                         )
                     },
                 ) { paddingValues ->
@@ -190,6 +200,44 @@ class MainActivity : ComponentActivity() {
                         BottomNavTab.MUSIC -> {
                             MusicScreen(modifier = Modifier.padding(paddingValues))
                         }
+                        BottomNavTab.ME -> {
+                            when (meSubScreen) {
+                                MeSubScreen.Main -> MeScreen(
+                                    modifier = Modifier.padding(paddingValues),
+                                    onNavigate = { dest ->
+                                        meSubScreen = when (dest) {
+                                            MeDestination.PrivacyFolder -> MeSubScreen.PrivacyFolder
+                                            MeDestination.FileTransfer -> MeSubScreen.FileTransfer
+                                            MeDestination.AboutUs -> MeSubScreen.AboutUs
+                                            MeDestination.Settings -> MeSubScreen.Settings
+                                        }
+                                    },
+                                )
+                                MeSubScreen.PrivacyFolder -> PrivacyFolderScreen(
+                                    modifier = Modifier.padding(paddingValues),
+                                    onNavigateUp = { meSubScreen = MeSubScreen.Main },
+                                )
+                                MeSubScreen.FileTransfer -> FileTransferScreen(
+                                    modifier = Modifier.padding(paddingValues),
+                                    onNavigateUp = { meSubScreen = MeSubScreen.Main },
+                                )
+                                MeSubScreen.AboutUs -> TelegramScreen(
+                                    modifier = Modifier.padding(paddingValues),
+                                )
+                                MeSubScreen.Settings -> {
+                                    BackHandler { meSubScreen = MeSubScreen.Main }
+                                    val settingsNavController = rememberNavController()
+                                    Surface(
+                                        modifier = Modifier.fillMaxSize().padding(paddingValues),
+                                        color = MaterialTheme.colorScheme.surface,
+                                    ) {
+                                        NavHost(navController = settingsNavController, startDestination = SETTINGS_ROUTE) {
+                                            settingsNavGraph(navController = settingsNavController)
+                                        }
+                                    }
+                                }
+                            }
+                        }
                         BottomNavTab.TELEGRAM -> {
                             TelegramScreen(modifier = Modifier.padding(paddingValues))
                         }
@@ -226,4 +274,13 @@ fun shouldUseDynamicTheming(
 ): Boolean = when (uiState) {
     MainActivityUiState.Loading -> false
     is MainActivityUiState.Success -> uiState.preferences.useDynamicColors
+}
+
+
+sealed class MeSubScreen {
+    object Main : MeSubScreen()
+    object PrivacyFolder : MeSubScreen()
+    object FileTransfer : MeSubScreen()
+    object AboutUs : MeSubScreen()
+    object Settings : MeSubScreen()
 }

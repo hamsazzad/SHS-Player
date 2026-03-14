@@ -1,0 +1,43 @@
+Everything is looking good so far, but you missed a few things and I need you to add some major new features. Please implement the following strictly:
+
+1. App Icon Update: Replace the current app icon with the PNG image I provided. Please properly configure this PNG to be the launcher icon for all APKs.
+
+**2. Music Selection Fixes:**
+- Why did you remove the bulk selection from the Music section? Bring it back immediately.
+- Single Select: When a single music file is long-pressed, it should show: Play, Rename, Share, Info, Delete, and Favorite.
+- Bulk Select: When multiple music files are selected, it should only show: Add to Favorite and Delete.
+
+**3. Privacy Folder (Vault):**
+- Create a "Privacy Folder" where users can hide their videos and music. 
+- Files moved to this folder MUST disappear from the device's main gallery/media store. They should only reappear in the gallery if the user "restores" them from the Privacy folder.
+- How to add files: Users should be able to select a single file or bulk select files and choose "Move to privacy folder". 
+- Inside the Privacy Folder: 
+  - Provide an "Add" (+) icon. Clicking it should open a browser (showing tree, folders, or files) so the user can select media to hide directly from there.
+  - Divide the folder into two distinct sections/tabs: one for Videos and one for Music.
+- Security/Password Setup: 
+  - The Privacy folder must be password-protected.
+  - To set the password, the user must first choose and answer a security question. 
+  - Then, they must authenticate using their device's default security (Pattern, Fingerprint, or PIN). 
+  - Only after this can they set the folder password. This flow is necessary so users can use the "Forgot Password" option to recover or update it later.
+
+**4. 'About' Section & Navigation Update:**
+- You updated the About section inside the settings, but you need to update the "About" section in the main Navigation menu as well.
+- Keep the top image and the Facebook button exactly as they are.
+- Fix Telegram and Email buttons: The text MUST be on the button itself ("Join us on Telegram" and "Contact Us"), and the actual links must be embedded inside the click action.
+- Donation Button: Below these, add a donation button. The bKash number (01310211442) should be displayed as a not clickable button, and you must add a bKash logo icon on the left corner of this button.
+
+**5. File Transfer Feature (Playit Style):**
+- Add a local file transfer feature with separate sections for sending Videos and Music. Senders can choose single files, multiple files, or entire folders to send.
+- Sender Flow: The sender selects media/folders and clicks "Send". The app must prompt them to allow and turn on Camera, Bluetooth, Location, and Wi-Fi. After turning these on, it opens the Camera to scan a QR code.
+- Receiver Flow: The receiver clicks "Receive". The app prompts them to allow and turn on Bluetooth and Location. Once enabled, the app generates and displays a QR code on their screen for the sender to scan.
+
+**6. Bottom Navigation & 'Me' Tab:**
+- Add a new tab called "Me" in the bottom navigation menu (place it to the left of the About section).
+- Inside this "Me" tab, include these menus: Privacy Folder, File Transfer, About Us, and Settings.
+- Move the MAIN Settings icon (which is currently sitting above the video section) entirely into this new "Me" tab.
+
+**7. Tech Stack & Quality Assurance:**
+- You can use C, C++, Java, Kotlin, Dart, Shell, or whatever language/tool is necessary for the Android environment.
+- My only strict requirement is that the app MUST work smoothly without a single bug. 
+
+Once done, rebuild all 5 APKs directly in your Replit environment and push BOTH the updated source code and the new APKs to the GitHub repository, just like before.

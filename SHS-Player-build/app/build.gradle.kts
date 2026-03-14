@@ -131,6 +131,8 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.compose)
 
     implementation(libs.accompanist.permissions)
+    implementation(libs.androidx.biometric)
+    implementation(libs.zxing.core)
 
     testImplementation(libs.junit4)
     androidTestImplementation(platform(libs.androidx.compose.bom))

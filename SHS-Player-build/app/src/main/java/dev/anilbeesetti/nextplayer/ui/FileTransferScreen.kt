@@ -39,16 +39,13 @@ import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.BufferedReader
 import java.io.File
 import java.io.InputStream
-import java.io.InputStreamReader
-import java.io.OutputStream
 import java.net.ServerSocket
 import java.net.Socket
 import java.net.URL
+import java.util.UUID
 
-// ─── QR Code Generation ───────────────────────────────────────────────────────
 fun generateQrCodeBitmap(content: String, size: Int = 512): Bitmap? {
     return try {
         val hints = hashMapOf<EncodeHintType, Any>().apply {
@@ -67,7 +64,6 @@ fun generateQrCodeBitmap(content: String, size: Int = 512): Bitmap? {
     } catch (e: WriterException) { null }
 }
 
-// ─── Network Helpers ──────────────────────────────────────────────────────────
 fun getWifiIpAddress(context: Context): String? {
     val wm = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
     val ip = wm.connectionInfo.ipAddress
@@ -75,7 +71,6 @@ fun getWifiIpAddress(context: Context): String? {
     return String.format("%d.%d.%d.%d", ip and 0xff, ip shr 8 and 0xff, ip shr 16 and 0xff, ip shr 24 and 0xff)
 }
 
-// ─── Selected Media Item ──────────────────────────────────────────────────────
 data class SelectedMediaItem(val uri: Uri, val name: String, val size: Long, val type: String)
 
 fun queryMediaItems(context: Context, uri: Uri, mediaType: String): SelectedMediaItem? {
@@ -91,10 +86,13 @@ fun queryMediaItems(context: Context, uri: Uri, mediaType: String): SelectedMedi
     }.getOrNull()
 }
 
-// ─── HTTP File Server ─────────────────────────────────────────────────────────
-class SimpleFileServer(private val context: Context, private val port: Int) {
+class SimpleFileServer(
+    private val context: Context,
+    private val port: Int,
+    val authToken: String = UUID.randomUUID().toString(),
+) {
     private var serverSocket: ServerSocket? = null
-    var isRunning = false
+    @Volatile var isRunning = false
     @Volatile private var _receivedFiles = listOf<File>()
     val receivedFiles: List<File> get() = _receivedFiles
     var onFileReceived: ((File) -> Unit)? = null
@@ -106,24 +104,37 @@ class SimpleFileServer(private val context: Context, private val port: Int) {
             try {
                 serverSocket = ServerSocket(port)
                 while (isRunning) {
-                    try {
-                        val client = serverSocket?.accept() ?: break
-                        Thread { handleClient(client) }.start()
-                    } catch (e: Exception) { if (!isRunning) break }
+                    val client = try {
+                        serverSocket?.accept() ?: break
+                    } catch (e: Exception) {
+                        if (!isRunning) break else continue
+                    }
+                    Thread { handleClient(client) }.start()
                 }
-            } catch (e: Exception) { isRunning = false }
+            } catch (e: Exception) {
+                android.util.Log.e("SimpleFileServer", "Server failed to start", e)
+                isRunning = false
+            }
         }.start()
     }
 
     fun stop() {
         isRunning = false
-        runCatching { serverSocket?.close() }
+        try { serverSocket?.close() } catch (_: Exception) {}
+    }
+
+    private fun sanitizeFileName(raw: String): String {
+        val stripped = raw.replace('/', '_').replace('\\', '_').replace('\u0000', '_')
+        val name = File(stripped).name
+        if (name.isBlank() || name == "." || name == "..") {
+            return "received_${System.currentTimeMillis()}"
+        }
+        return name
     }
 
     private fun handleClient(socket: Socket) {
         try {
             val inputStream = socket.getInputStream()
-            // Parse headers byte-by-byte to avoid consuming body bytes into a BufferedReader buffer
             val headerBuf = StringBuilder()
             var prev3 = 0; var prev2 = 0; var prev1 = 0
             while (true) {
@@ -140,13 +151,25 @@ class SimpleFileServer(private val context: Context, private val port: Int) {
                 val idx = line.indexOf(":")
                 if (idx > 0) headers[line.substring(0, idx).trim().lowercase()] = line.substring(idx + 1).trim()
             }
+
+            val clientToken = headers["x-auth-token"] ?: ""
+            if (clientToken != authToken) {
+                socket.getOutputStream().write("HTTP/1.1 403 Forbidden\r\nContent-Length: 12\r\n\r\nUnauthorized".toByteArray())
+                return
+            }
+
             if (requestLine.startsWith("POST")) {
-                val fileName = headers["x-filename"] ?: "received_${System.currentTimeMillis()}"
+                val rawName = headers["x-filename"] ?: "received_${System.currentTimeMillis()}"
+                val fileName = sanitizeFileName(rawName)
                 val contentLength = headers["content-length"]?.toLongOrNull() ?: -1L
                 val recvDir = File(context.filesDir, "transfers/received")
                 recvDir.mkdirs()
                 val destFile = File(recvDir, fileName)
-                // inputStream pointer is now exactly at the start of the body
+                val canonical = destFile.canonicalPath
+                if (!canonical.startsWith(recvDir.canonicalPath + File.separator)) {
+                    socket.getOutputStream().write("HTTP/1.1 400 Bad Request\r\nContent-Length: 16\r\n\r\nInvalid filename".toByteArray())
+                    return
+                }
                 destFile.outputStream().use { out ->
                     val buf = ByteArray(8192)
                     var remaining = contentLength
@@ -164,11 +187,14 @@ class SimpleFileServer(private val context: Context, private val port: Int) {
             } else {
                 socket.getOutputStream().write("HTTP/1.1 200 OK\r\nContent-Length: 15\r\n\r\nSHS File Server".toByteArray())
             }
-        } catch (e: Exception) { } finally { runCatching { socket.close() } }
+        } catch (e: Exception) {
+            android.util.Log.e("SimpleFileServer", "Error handling client", e)
+        } finally {
+            try { socket.close() } catch (_: Exception) {}
+        }
     }
 }
 
-// ─── Main FileTransfer Screen ─────────────────────────────────────────────────
 @OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun FileTransferScreen(
@@ -279,7 +305,6 @@ fun TransferOptionCard(modifier: Modifier = Modifier, icon: androidx.compose.ui.
     }
 }
 
-// ─── Send View ────────────────────────────────────────────────────────────────
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun SendView(context: Context) {
@@ -435,20 +460,24 @@ fun SendView(context: Context) {
                 transferStatus = "Sending ${selectedFiles.size} file(s)..."
                 scope.launch(Dispatchers.IO) {
                     var sent = 0; var failed = 0
+                    val parsedUrl = Uri.parse(targetUrl)
+                    val token = parsedUrl.getQueryParameter("token") ?: ""
+                    val baseUrl = targetUrl.substringBefore("?")
                     selectedFiles.forEach { item ->
                         runCatching {
-                            val conn = URL("$targetUrl/upload").openConnection() as java.net.HttpURLConnection
+                            val conn = URL("$baseUrl/upload").openConnection() as java.net.HttpURLConnection
                             conn.requestMethod = "POST"
                             conn.doOutput = true
                             conn.setRequestProperty("X-Filename", item.name)
+                            conn.setRequestProperty("X-Auth-Token", token)
                             conn.setRequestProperty("Content-Type", "application/octet-stream")
                             conn.connectTimeout = 10000; conn.readTimeout = 60000
                             context.contentResolver.openInputStream(item.uri)?.use { input ->
                                 conn.outputStream.use { out -> input.copyTo(out) }
                             }
-                            conn.responseCode
+                            val code = conn.responseCode
                             conn.disconnect()
-                            sent++
+                            if (code == 200) sent++ else failed++
                         }.onFailure { failed++ }
                     }
                     withContext(Dispatchers.Main) {
@@ -467,7 +496,6 @@ fun SendView(context: Context) {
     }
 }
 
-// ─── Receive View ─────────────────────────────────────────────────────────────
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun ReceiveView(context: Context) {
@@ -539,7 +567,7 @@ fun ReceiveView(context: Context) {
                                 val newServer = SimpleFileServer(context, port)
                                 newServer.start()
                                 val ip = getWifiIpAddress(context) ?: "0.0.0.0"
-                                val url = "http://$ip:$port"
+                                val url = "http://$ip:$port?token=${newServer.authToken}"
                                 val qr = generateQrCodeBitmap(url)
                                 withContext(Dispatchers.Main) {
                                     server = newServer

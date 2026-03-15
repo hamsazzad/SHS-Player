@@ -27,6 +27,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.fragment.app.FragmentActivity
 import dev.anilbeesetti.nextplayer.core.ui.R as coreUiR
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
@@ -178,6 +179,22 @@ fun deleteFromVault(context: Context, vaultFile: VaultFile) {
         File(vaultFile.vaultPath).delete()
         val remaining = getVaultFiles(context, vaultFile.type).filter { it.id != vaultFile.id }
         saveVaultFileMeta(context, vaultFile.type, remaining)
+    }
+}
+
+fun playVaultFile(context: Context, vaultFile: VaultFile, mimeType: String) {
+    runCatching {
+        val file = File(vaultFile.vaultPath)
+        val authority = context.packageName + ".fileprovider"
+        val uri = FileProvider.getUriForFile(context, authority, file)
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, mimeType)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        context.startActivity(intent)
+    }.onFailure {
+        android.widget.Toast.makeText(context, "Cannot play: ${it.message}", android.widget.Toast.LENGTH_SHORT).show()
     }
 }
 
@@ -611,6 +628,7 @@ fun VaultContentScreen(
                         withContext(Dispatchers.Main) { videoFiles = getVaultFiles(context, "videos") }
                     }
                 },
+                onPlay = { f -> playVaultFile(context, f, "video/*") },
             )
             1 -> VaultFileList(
                 files = musicFiles,
@@ -627,6 +645,7 @@ fun VaultContentScreen(
                         withContext(Dispatchers.Main) { musicFiles = getVaultFiles(context, "music") }
                     }
                 },
+                onPlay = { f -> playVaultFile(context, f, "audio/*") },
             )
         }
     }
@@ -638,6 +657,7 @@ fun VaultFileList(
     emptyText: String,
     onRestore: (VaultFile) -> Unit,
     onDelete: (VaultFile) -> Unit,
+    onPlay: (VaultFile) -> Unit = {},
 ) {
     if (files.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -651,7 +671,7 @@ fun VaultFileList(
         modifier = Modifier.fillMaxSize(),
     ) {
         items(files, key = { it.id }) { file ->
-            VaultFileItem(file = file, onRestore = { onRestore(file) }, onDelete = { onDelete(file) })
+            VaultFileItem(file = file, onRestore = { onRestore(file) }, onDelete = { onDelete(file) }, onPlay = { onPlay(file) })
         }
     }
 }
@@ -661,6 +681,7 @@ fun VaultFileItem(
     file: VaultFile,
     onRestore: () -> Unit,
     onDelete: () -> Unit,
+    onPlay: () -> Unit = {},
 ) {
     var showMenu by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
@@ -703,6 +724,11 @@ fun VaultFileItem(
                     Icon(NextIcons.MoreVert, contentDescription = "Options")
                 }
                 DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
+                    DropdownMenuItem(
+                        text = { Text("Play") },
+                        leadingIcon = { Icon(NextIcons.Play, contentDescription = null) },
+                        onClick = { showMenu = false; onPlay() },
+                    )
                     DropdownMenuItem(
                         text = { Text("Restore to Gallery") },
                         leadingIcon = { Icon(NextIcons.LockOpen, contentDescription = null) },

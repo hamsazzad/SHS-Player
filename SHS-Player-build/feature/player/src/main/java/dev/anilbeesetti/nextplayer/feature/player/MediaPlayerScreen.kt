@@ -76,12 +76,14 @@ import dev.anilbeesetti.nextplayer.feature.player.state.rememberRotationState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberSeekGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberTapGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVideoZoomAndContentScaleState
+import dev.anilbeesetti.nextplayer.feature.player.state.rememberAudioEqualizerState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeAndBrightnessGestureState
 import dev.anilbeesetti.nextplayer.feature.player.state.rememberVolumeState
 import dev.anilbeesetti.nextplayer.feature.player.state.seekAmountFormatted
 import dev.anilbeesetti.nextplayer.feature.player.state.seekToPositionFormated
 import dev.anilbeesetti.nextplayer.feature.player.ui.BookmarkItem
 import dev.anilbeesetti.nextplayer.feature.player.ui.DoubleTapIndicator
+import dev.anilbeesetti.nextplayer.feature.player.ui.LocalAudioEqualizerState
 import dev.anilbeesetti.nextplayer.feature.player.ui.OverlayShowView
 import dev.anilbeesetti.nextplayer.feature.player.ui.OverlayView
 import dev.anilbeesetti.nextplayer.feature.player.ui.PlaylistItem
@@ -167,6 +169,7 @@ fun MediaPlayerScreen(
     var eqBrightness by remember { mutableFloatStateOf(1f) }
     var eqContrast by remember { mutableFloatStateOf(1f) }
     var eqSaturation by remember { mutableFloatStateOf(1f) }
+    val audioEqualizerState = rememberAudioEqualizerState(player)
 
     val bookmarks by viewModel.bookmarks.collectAsState(initial = emptyList())
     val isFav by viewModel.isFavorite.collectAsState(initial = false)
@@ -227,7 +230,10 @@ fun MediaPlayerScreen(
 
     var overlayView by remember { mutableStateOf<OverlayView?>(null) }
 
-    CompositionLocalProvider(LocalControlsVisibilityState provides controlsVisibilityState) {
+    CompositionLocalProvider(
+        LocalControlsVisibilityState provides controlsVisibilityState,
+        LocalAudioEqualizerState provides audioEqualizerState,
+    ) {
         Box {
             Box(
                 modifier = modifier

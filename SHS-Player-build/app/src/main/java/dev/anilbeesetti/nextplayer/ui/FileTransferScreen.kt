@@ -95,7 +95,9 @@ fun queryMediaItems(context: Context, uri: Uri, mediaType: String): SelectedMedi
 class SimpleFileServer(private val context: Context, private val port: Int) {
     private var serverSocket: ServerSocket? = null
     var isRunning = false
-    val receivedFiles = mutableListOf<File>()
+    @Volatile private var _receivedFiles = listOf<File>()
+    val receivedFiles: List<File> get() = _receivedFiles
+    var onFileReceived: ((File) -> Unit)? = null
 
     fun start() {
         if (isRunning) return
@@ -120,15 +122,23 @@ class SimpleFileServer(private val context: Context, private val port: Int) {
 
     private fun handleClient(socket: Socket) {
         try {
-            val input = socket.getInputStream()
-            val reader = BufferedReader(InputStreamReader(input))
-            val requestLine = reader.readLine() ?: return
+            val inputStream = socket.getInputStream()
+            // Parse headers byte-by-byte to avoid consuming body bytes into a BufferedReader buffer
+            val headerBuf = StringBuilder()
+            var prev3 = 0; var prev2 = 0; var prev1 = 0
+            while (true) {
+                val b = inputStream.read()
+                if (b == -1) break
+                headerBuf.append(b.toChar())
+                if (prev3 == '\r'.code && prev2 == '\n'.code && prev1 == '\r'.code && b == '\n'.code) break
+                prev3 = prev2; prev2 = prev1; prev1 = b
+            }
+            val lines = headerBuf.toString().trimEnd().split("\r\n")
+            val requestLine = lines.firstOrNull() ?: return
             val headers = mutableMapOf<String, String>()
-            var line = reader.readLine()
-            while (line != null && line.isNotEmpty()) {
+            lines.drop(1).forEach { line ->
                 val idx = line.indexOf(":")
                 if (idx > 0) headers[line.substring(0, idx).trim().lowercase()] = line.substring(idx + 1).trim()
-                line = reader.readLine()
             }
             if (requestLine.startsWith("POST")) {
                 val fileName = headers["x-filename"] ?: "received_${System.currentTimeMillis()}"
@@ -136,19 +146,23 @@ class SimpleFileServer(private val context: Context, private val port: Int) {
                 val recvDir = File(context.filesDir, "transfers/received")
                 recvDir.mkdirs()
                 val destFile = File(recvDir, fileName)
-                // Read body (remaining bytes)
-                val rawInput = socket.getInputStream()
+                // inputStream pointer is now exactly at the start of the body
                 destFile.outputStream().use { out ->
                     val buf = ByteArray(8192)
-                    var read = rawInput.read(buf)
-                    while (read != -1) { out.write(buf, 0, read); read = rawInput.read(buf) }
+                    var remaining = contentLength
+                    while (remaining != 0L) {
+                        val toRead = if (remaining > 0) minOf(buf.size.toLong(), remaining).toInt() else buf.size
+                        val read = inputStream.read(buf, 0, toRead)
+                        if (read == -1) break
+                        out.write(buf, 0, read)
+                        if (remaining > 0) remaining -= read
+                    }
                 }
-                receivedFiles.add(destFile)
-                val response = "HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nOK"
-                socket.getOutputStream().write(response.toByteArray())
+                synchronized(this) { _receivedFiles = _receivedFiles + destFile }
+                onFileReceived?.invoke(destFile)
+                socket.getOutputStream().write("HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nOK".toByteArray())
             } else {
-                val response = "HTTP/1.1 200 OK\r\nContent-Length: 14\r\n\r\nSHS File Server"
-                socket.getOutputStream().write(response.toByteArray())
+                socket.getOutputStream().write("HTTP/1.1 200 OK\r\nContent-Length: 15\r\n\r\nSHS File Server".toByteArray())
             }
         } catch (e: Exception) { } finally { runCatching { socket.close() } }
     }
@@ -562,11 +576,20 @@ fun ReceiveView(context: Context) {
                         Text("Port: ${state.port}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
                     }
                 }
-                val filesNow = server?.receivedFiles?.map { it.name } ?: emptyList()
-                if (filesNow.isNotEmpty()) {
-                    Text("Received ${filesNow.size} file(s):", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                var liveFileNames by remember { mutableStateOf<List<String>>(emptyList()) }
+                val activeServer = server
+                LaunchedEffect(activeServer) {
+                    if (activeServer == null) return@LaunchedEffect
+                    while (activeServer.isRunning) {
+                        liveFileNames = activeServer.receivedFiles.map { it.name }
+                        kotlinx.coroutines.delay(500)
+                    }
+                    liveFileNames = activeServer.receivedFiles.map { it.name }
+                }
+                if (liveFileNames.isNotEmpty()) {
+                    Text("Received ${liveFileNames.size} file(s):", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
                     LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth()) {
-                        items(filesNow) { name ->
+                        items(liveFileNames) { name ->
                             Text("• $name", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(vertical = 2.dp))
                         }
                     }

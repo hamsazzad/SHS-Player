@@ -99,45 +99,54 @@ fun QrCameraPreview(
     val executor = remember { Executors.newSingleThreadExecutor() }
     val scanned = remember { AtomicBoolean(false) }
     var previewView by remember { mutableStateOf<PreviewView?>(null) }
+    var cameraProvider by remember { mutableStateOf<ProcessCameraProvider?>(null) }
 
     DisposableEffect(Unit) {
-        onDispose { executor.shutdown() }
+        onDispose {
+            executor.shutdown()
+            cameraProvider?.unbindAll()
+        }
     }
 
     LaunchedEffect(previewView) {
         val pv = previewView ?: return@LaunchedEffect
-        val cameraProvider = ProcessCameraProvider.getInstance(context).await()
-        val preview = Preview.Builder().build().also {
-            it.surfaceProvider = pv.surfaceProvider
-        }
-        val barcodeScanner = BarcodeScanning.getClient()
-        val imageAnalysis = ImageAnalysis.Builder()
-            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-            .build()
-        imageAnalysis.setAnalyzer(executor) { imageProxy ->
-            val mediaImage = imageProxy.image
-            if (mediaImage != null && !scanned.get()) {
-                val image = InputImage.fromMediaImage(
-                    mediaImage,
-                    imageProxy.imageInfo.rotationDegrees,
-                )
-                barcodeScanner.process(image)
-                    .addOnSuccessListener { barcodes ->
-                        val qrValue = barcodes
-                            .firstOrNull { barcode -> barcode.format == Barcode.FORMAT_QR_CODE }
-                            ?.rawValue
-                        if (qrValue != null && scanned.compareAndSet(false, true)) {
-                            onQrScanned(qrValue)
-                        }
-                    }
-                    .addOnCompleteListener { imageProxy.close() }
-            } else {
-                imageProxy.close()
-            }
-        }
         try {
-            cameraProvider.unbindAll()
-            cameraProvider.bindToLifecycle(
+            val provider = ProcessCameraProvider.getInstance(context).await()
+            cameraProvider = provider
+
+            val preview = Preview.Builder().build().also {
+                it.surfaceProvider = pv.surfaceProvider
+            }
+
+            val barcodeScanner = BarcodeScanning.getClient()
+            val imageAnalysis = ImageAnalysis.Builder()
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                .build()
+
+            imageAnalysis.setAnalyzer(executor) { imageProxy ->
+                val mediaImage = imageProxy.image
+                if (mediaImage != null && !scanned.get()) {
+                    val image = InputImage.fromMediaImage(
+                        mediaImage,
+                        imageProxy.imageInfo.rotationDegrees,
+                    )
+                    barcodeScanner.process(image)
+                        .addOnSuccessListener { barcodes ->
+                            val qrValue = barcodes
+                                .firstOrNull { barcode -> barcode.format == Barcode.FORMAT_QR_CODE }
+                                ?.rawValue
+                            if (qrValue != null && scanned.compareAndSet(false, true)) {
+                                onQrScanned(qrValue)
+                            }
+                        }
+                        .addOnCompleteListener { imageProxy.close() }
+                } else {
+                    imageProxy.close()
+                }
+            }
+
+            provider.unbindAll()
+            provider.bindToLifecycle(
                 lifecycleOwner,
                 CameraSelector.DEFAULT_BACK_CAMERA,
                 preview,

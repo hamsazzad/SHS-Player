@@ -1,15 +1,24 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
 import android.annotation.SuppressLint
+import android.app.PictureInPictureParams
 import android.content.ComponentName
+import android.content.ContentValues
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.media.MediaCodec
+import android.media.MediaExtractor
+import android.media.MediaFormat
+import android.media.MediaMuxer
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.os.Handler
 import android.os.Looper
+import android.provider.MediaStore
+import android.util.Rational
 import android.view.PixelCopy
 import android.view.SurfaceView
 import android.view.View
@@ -22,12 +31,34 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.core.util.Consumer
 import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -52,13 +83,6 @@ import dev.anilbeesetti.nextplayer.feature.player.service.addSubtitleTrack
 import dev.anilbeesetti.nextplayer.feature.player.service.stopPlayerSession
 import dev.anilbeesetti.nextplayer.feature.player.utils.PlayerApi
 import dev.anilbeesetti.nextplayer.feature.player.utils.ScreenshotUtil
-import android.content.ContentValues
-import android.media.MediaCodec
-import android.media.MediaExtractor
-import android.media.MediaFormat
-import android.media.MediaMuxer
-import android.os.Environment
-import android.provider.MediaStore
 import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlinx.coroutines.Dispatchers
@@ -99,6 +123,7 @@ class PlayerActivity : ComponentActivity() {
         setContent {
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
             var player by remember { mutableStateOf<MediaController?>(null) }
+            var showTrimDialog by remember { mutableStateOf(false) }
 
             LifecycleStartEffect(Unit) {
                 maybeInitControllerFuture()
@@ -141,12 +166,25 @@ class PlayerActivity : ComponentActivity() {
                         },
                         onScreenshotClick = { captureScreenshot() },
                         onShareClick = { shareCurrentVideo() },
-                        onTrimClick = {
-                            Toast.makeText(this@PlayerActivity, "Trim feature coming soon", Toast.LENGTH_SHORT).show()
-                        },
+                        onTrimClick = { showTrimDialog = true },
                         onVideoToAudioClick = { convertVideoToAudio() },
                         onReversePlayClick = { reversePlay() },
                     )
+
+                    if (showTrimDialog) {
+                        val currentPlayer = player
+                        val videoUri = mediaController?.currentMediaItem?.localConfiguration?.uri ?: intent.data
+                        TrimVideoDialog(
+                            videoUri = videoUri,
+                            durationMs = currentPlayer?.duration?.takeIf { it > 0 } ?: 0L,
+                            currentPositionMs = currentPlayer?.currentPosition ?: 0L,
+                            onDismiss = { showTrimDialog = false },
+                            onTrimConfirmed = { startMs, endMs ->
+                                showTrimDialog = false
+                                if (videoUri != null) trimVideo(videoUri, startMs, endMs)
+                            },
+                        )
+                    }
                 }
             }
         }
@@ -154,9 +192,23 @@ class PlayerActivity : ComponentActivity() {
         playerApi = PlayerApi(this)
     }
 
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+            Build.VERSION.SDK_INT < Build.VERSION_CODES.S &&
+            mediaController?.isPlaying == true
+        ) {
+            runCatching {
+                val params = PictureInPictureParams.Builder()
+                    .setAspectRatio(Rational(16, 9))
+                    .build()
+                enterPictureInPictureMode(params)
+            }
+        }
+    }
 
     private fun convertVideoToAudio() {
-        val videoUri = intent.data ?: run {
+        val videoUri = mediaController?.currentMediaItem?.localConfiguration?.uri ?: intent.data ?: run {
             Toast.makeText(this, "No video to convert", Toast.LENGTH_SHORT).show()
             return
         }
@@ -253,11 +305,103 @@ class PlayerActivity : ComponentActivity() {
         }
     }
 
+    private fun trimVideo(videoUri: Uri, startMs: Long, endMs: Long) {
+        Toast.makeText(this, "Trimming video...", Toast.LENGTH_LONG).show()
+        lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                try {
+                    val extractor = MediaExtractor()
+                    extractor.setDataSource(this@PlayerActivity, videoUri, null)
+
+                    val startUs = startMs * 1000L
+                    val endUs = endMs * 1000L
+                    val originalName = videoUri.lastPathSegment?.substringBeforeLast(".") ?: "video_${System.currentTimeMillis()}"
+                    val outputName = "${originalName}_trimmed.mp4"
+                    val buffer = java.nio.ByteBuffer.allocate(2 * 1024 * 1024)
+                    val bufferInfo = MediaCodec.BufferInfo()
+
+                    val doTrim: (MediaMuxer) -> Unit = { muxer ->
+                        val trackMap = mutableMapOf<Int, Int>()
+                        for (i in 0 until extractor.trackCount) {
+                            val format = extractor.getTrackFormat(i)
+                            val mime = format.getString(MediaFormat.KEY_MIME) ?: ""
+                            if (mime.startsWith("video/") || mime.startsWith("audio/")) {
+                                extractor.selectTrack(i)
+                                trackMap[i] = muxer.addTrack(format)
+                            }
+                        }
+                        muxer.start()
+
+                        for ((srcTrack, dstTrack) in trackMap) {
+                            extractor.unselectTrack(srcTrack)
+                        }
+                        for ((srcTrack, dstTrack) in trackMap) {
+                            extractor.selectTrack(srcTrack)
+                            extractor.seekTo(startUs, MediaExtractor.SEEK_TO_CLOSEST_SYNC)
+                            while (true) {
+                                val chunkSize = extractor.readSampleData(buffer, 0)
+                                if (chunkSize < 0) break
+                                val sampleTime = extractor.sampleTime
+                                if (sampleTime > endUs) break
+                                if (extractor.sampleTrackIndex == srcTrack) {
+                                    bufferInfo.size = chunkSize
+                                    bufferInfo.offset = 0
+                                    bufferInfo.presentationTimeUs = sampleTime - startUs
+                                    bufferInfo.flags = extractor.sampleFlags
+                                    muxer.writeSampleData(dstTrack, buffer, bufferInfo)
+                                }
+                                extractor.advance()
+                            }
+                            extractor.unselectTrack(srcTrack)
+                        }
+                        muxer.stop()
+                        muxer.release()
+                        extractor.release()
+                    }
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        val values = ContentValues().apply {
+                            put(MediaStore.Video.Media.DISPLAY_NAME, outputName)
+                            put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
+                            put(MediaStore.Video.Media.RELATIVE_PATH, Environment.DIRECTORY_MOVIES)
+                        }
+                        val outputUri = contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values)
+                        if (outputUri == null) {
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(this@PlayerActivity, "Failed to create output file", Toast.LENGTH_SHORT).show()
+                            }
+                            extractor.release()
+                            return@withContext
+                        }
+                        contentResolver.openFileDescriptor(outputUri, "w")?.use { pfd ->
+                            val muxer = MediaMuxer(pfd.fileDescriptor, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
+                            doTrim(muxer)
+                        }
+                    } else {
+                        val dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES)
+                        dir.mkdirs()
+                        val file = File(dir, outputName)
+                        val muxer = MediaMuxer(file.absolutePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
+                        doTrim(muxer)
+                    }
+
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@PlayerActivity, "Trimmed video saved to Movies: $outputName", Toast.LENGTH_LONG).show()
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@PlayerActivity, "Trim failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+    }
+
     private fun reversePlay() {
         val duration = mediaController?.duration ?: 0L
         val position = mediaController?.currentPosition ?: 0L
         if (duration > 0) {
-            // Seek to end then play backwards using speed control
             mediaController?.seekTo(duration - position)
             mediaController?.play()
             Toast.makeText(this, "Playing from end. Use 2x long-press speed for fast playback.", Toast.LENGTH_SHORT).show()
@@ -265,7 +409,7 @@ class PlayerActivity : ComponentActivity() {
     }
 
     private fun shareCurrentVideo() {
-        val videoUri = intent.data ?: return
+        val videoUri = mediaController?.currentMediaItem?.localConfiguration?.uri ?: intent.data ?: return
         val shareIntent = Intent(Intent.ACTION_SEND).apply {
             type = "video/*"
             putExtra(Intent.EXTRA_STREAM, videoUri)
@@ -459,14 +603,12 @@ class PlayerActivity : ComponentActivity() {
                     isPlaybackFinished = mediaController?.playbackState == Player.STATE_ENDED
                     finishAndStopPlayerSession()
                 }
-
                 else -> {}
             }
         }
 
         override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
             super.onPlayWhenReadyChanged(playWhenReady, reason)
-
             if (reason == Player.PLAY_WHEN_READY_CHANGE_REASON_END_OF_MEDIA_ITEM) {
                 if (mediaController?.repeatMode != Player.REPEAT_MODE_OFF) return
                 isPlaybackFinished = true
@@ -525,4 +667,80 @@ class PlayerActivity : ComponentActivity() {
     fun removeOnWindowAttributesChangedListener(listener: Consumer<WindowManager.LayoutParams?>) {
         onWindowAttributesChangedListener.remove(listener)
     }
+}
+
+@androidx.compose.runtime.Composable
+private fun TrimVideoDialog(
+    videoUri: Uri?,
+    durationMs: Long,
+    currentPositionMs: Long,
+    onDismiss: () -> Unit,
+    onTrimConfirmed: (startMs: Long, endMs: Long) -> Unit,
+) {
+    val safeDuration = if (durationMs > 0) durationMs else 60_000L
+    var startMs by remember { mutableLongStateOf(0L) }
+    var endMs by remember { mutableLongStateOf(safeDuration) }
+
+    LaunchedEffect(durationMs) {
+        startMs = 0L
+        endMs = safeDuration
+    }
+
+    fun formatTime(ms: Long): String {
+        val totalSec = ms / 1000
+        val h = totalSec / 3600
+        val m = (totalSec % 3600) / 60
+        val s = totalSec % 60
+        return if (h > 0) "%d:%02d:%02d".format(h, m, s) else "%d:%02d".format(m, s)
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Trim Video") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (videoUri == null) {
+                    Text("No video loaded.", color = MaterialTheme.colorScheme.error)
+                } else {
+                    Text("Duration: ${formatTime(safeDuration)}", style = MaterialTheme.typography.bodySmall)
+
+                    Text("Start: ${formatTime(startMs)}", style = MaterialTheme.typography.bodyMedium)
+                    Slider(
+                        value = startMs.toFloat(),
+                        onValueChange = { startMs = it.toLong().coerceAtMost(endMs - 1000L) },
+                        valueRange = 0f..safeDuration.toFloat(),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+
+                    Text("End: ${formatTime(endMs)}", style = MaterialTheme.typography.bodyMedium)
+                    Slider(
+                        value = endMs.toFloat(),
+                        onValueChange = { endMs = it.toLong().coerceAtLeast(startMs + 1000L) },
+                        valueRange = 0f..safeDuration.toFloat(),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+
+                    Text(
+                        "Trimmed length: ${formatTime(endMs - startMs)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        "Output will be saved to Movies folder.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onTrimConfirmed(startMs, endMs) },
+                enabled = videoUri != null && (endMs - startMs) >= 1000L,
+            ) { Text("Trim & Save") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        },
+    )
 }

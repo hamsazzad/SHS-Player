@@ -343,7 +343,7 @@ class PlayerActivity : ComponentActivity() {
                                 if (chunkSize < 0) break
                                 val sampleTime = extractor.sampleTime
                                 if (sampleTime > endUs) break
-                                if (extractor.sampleTrackIndex == srcTrack) {
+                                if (sampleTime >= startUs && extractor.sampleTrackIndex == srcTrack) {
                                     bufferInfo.size = chunkSize
                                     bufferInfo.offset = 0
                                     bufferInfo.presentationTimeUs = sampleTime - startUs

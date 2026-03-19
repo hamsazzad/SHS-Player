@@ -1,9 +1,0 @@
-<resources>
-    <string name="app_name">SHS AI</string>
-    <string name="downloading">Downloading AI model…</string>
-    <string name="download_hint">SHS AI needs to download the DeepSeek-R1 model (~1 GB) once to your device. Please connect to Wi-Fi.</string>
-    <string name="chat_hint">Ask SHS AI anything…</string>
-    <string name="model_loading">Loading SHS AI model…</string>
-    <string name="model_ready">SHS AI is ready. How can I help you?</string>
-    <string name="btn_download">Download &amp; Start</string>
-</resources>

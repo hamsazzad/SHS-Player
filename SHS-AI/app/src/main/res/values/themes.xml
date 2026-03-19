@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <style name="Theme.ShsAi" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/shs_primary</item>
-        <item name="colorPrimaryDark">@color/shs_primary_dark</item>
-        <item name="colorAccent">@color/shs_accent</item>
-        <item name="android:windowBackground">@color/shs_background</item>
-    </style>
-</resources>
